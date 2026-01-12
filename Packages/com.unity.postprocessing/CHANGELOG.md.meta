@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 76eb0b51417a8442180aa67edda7d01a
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 328076
+  packageName: TND Post Processing Stack V2
+  packageVersion: 3.5.1
+  assetPath: Packages/com.unity.postprocessing/CHANGELOG.md
+  uploadId: 782940
