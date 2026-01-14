@@ -15,6 +15,13 @@ public class BaldiEnemy : MonoBehaviour
      private bool isMoving = true;
     private float timer;
     public bool isEnraged = false;
+    
+    //for patrolling
+    public Transform[] patrolPoints;
+    private int currentPatrolIndex = 0;
+
+
+
 
     void Start()
     {
@@ -72,8 +79,13 @@ public class BaldiEnemy : MonoBehaviour
                     if (target != null)
                         agent.SetDestination(target.position);
 
-                }
+                } 
             }
+        }
+        //to set agent to patrolling
+        if (!agent.hasPath || agent.remainingDistance < 1f)
+        {
+            GoToRandomPoint();
         }
     }
 
@@ -83,5 +95,12 @@ private void OnTriggerEnter(Collider other)
         {
             targetScript.KhelKhatam();
         }
+    }
+
+void GoToRandomPoint()
+    {
+
+        currentPatrolIndex = Random.Range(0, patrolPoints.Length);
+        agent.SetDestination(patrolPoints[currentPatrolIndex].position);
     }
 }
