@@ -102,5 +102,6 @@ void GoToRandomPoint()
 
         currentPatrolIndex = Random.Range(0, patrolPoints.Length);
         agent.SetDestination(patrolPoints[currentPatrolIndex].position);
+        Debug.Log("Set a new patrol point for Baldi");
     }
 }

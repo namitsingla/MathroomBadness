@@ -27,9 +27,15 @@ public class GameManager : MonoBehaviour
 
             lives -= 1;
 
-            baldi.transform.position = baldispawn;
-            uiiacat.transform.position = uiiacatspawn;
-            oggy.transform.position = oggyspawn;
+
+            baldi.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(baldispawn);
+            baldi.GetComponent<UnityEngine.AI.NavMeshAgent>().Warp(baldispawn);
+
+            uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(uiiacatspawn);
+            uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>().Warp(uiiacatspawn);
+
+            oggy.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(oggyspawn);
+            oggy.GetComponent<UnityEngine.AI.NavMeshAgent>().Warp(oggyspawn);
 
             player.GetComponent<CharacterController>().enabled = false;
             player.transform.position = playerspawn;
