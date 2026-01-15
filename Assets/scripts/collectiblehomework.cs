@@ -131,6 +131,7 @@ public class collectiblehomework : MonoBehaviour
                 oggy.GetComponent<EnemyController>().lookRadius = 500f;          
                 uiiacat.GetComponent<UIIAController>().isEnraged = true;
                 oggy.GetComponent<EnemyController>().isEnraged = true; 
+                uiiacat.GetComponent<UIIAController>().ActivateAllWalls();
             }
         }
 
