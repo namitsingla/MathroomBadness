@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 public class UIIAController : MonoBehaviour
 {
@@ -16,7 +17,8 @@ public class UIIAController : MonoBehaviour
     public Transform[] wallPoints;
     private Transform currentTarget;
     private LockableWall targetWall;
-    private bool chasingPlayer = false;
+    //private bool chasingPlayer = false;
+    public float wallLifetime = 30f;
 
     void Start()
     {
@@ -41,11 +43,11 @@ public class UIIAController : MonoBehaviour
                 {
                     agent.SetDestination(target.position); //sets target on player
                     //Debug.Log("Player detected!");
-                    chasingPlayer = true;
+                    //chasingPlayer = true;
 
                     //to remove wall so it doesnt activate wall even if near the target
                     targetWall = null;
-                    Debug.Log("wall removed.");
+                    //Debug.Log("wall removed from target.");
 
                     if (!hasSwitched)
                     {
@@ -59,7 +61,7 @@ public class UIIAController : MonoBehaviour
         }
 
         //if cat lost the player
-        chasingPlayer = false;
+        //chasingPlayer = false;
         hasSwitched = false;
 
         if (!agent.pathPending && (!agent.hasPath || agent.remainingDistance <= agent.stoppingDistance))
@@ -68,6 +70,9 @@ public class UIIAController : MonoBehaviour
             {
                 targetWall.ActivateWall();
                 Debug.Log("wall activated");
+
+                //to deactivate the wall
+                RemoveWall(targetWall);
             }
 
             ChooseRandomWall();
@@ -94,12 +99,11 @@ void ChooseRandomWall()
         {
             currentTarget = wallPoints[Random.Range(0, wallPoints.Length)];
             agent.SetDestination(currentTarget.position);
-            Debug.Log("target chosen");
+            //Debug.Log("target chosen");
 
             targetWall = currentTarget.GetComponentInChildren<LockableWall>(true);
             Debug.Log("wall chosen");
-        } while (false);
-        //targetWall.gameObject.activeSelf
+        } while (targetWall.gameObject.activeSelf);
 
          return;
     }
@@ -110,5 +114,16 @@ public void ActivateAllWalls()
         {
             wallPoints[i].GetComponentInChildren<LockableWall>(true).ActivateWall();
         }
+    }
+
+    public void RemoveWall(LockableWall wallToBeRemoved) 
+    {
+       StartCoroutine(RemoveWallAfterDelay(wallToBeRemoved));
+    }
+    IEnumerator RemoveWallAfterDelay(LockableWall wallToBeRemoved)
+    {
+        yield return new WaitForSeconds(wallLifetime);
+        wallToBeRemoved.DeactivateWall();
+        Debug.Log("Wall removed.");
     }
 }

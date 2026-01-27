@@ -6,4 +6,9 @@ public class LockableWall : MonoBehaviour
     {
         gameObject.SetActive(true);
     }
+
+    public void DeactivateWall()
+    {
+        gameObject.SetActive(false);
+    }
 }

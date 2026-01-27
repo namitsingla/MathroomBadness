@@ -25,6 +25,9 @@ public class BaldiWarningHide : MonoBehaviour
         baldi_talk.enabled = false;
         baldi_rotate.enabled = false;
         gameObject.SetActive(false);   // hide the canvas
+        RectTransform rt = messageText.rectTransform;
+        rt.anchoredPosition = new Vector2(170f, rt.anchoredPosition.y);
+
     }
 
     public void WarningNumber(GameObject item)
@@ -77,12 +80,18 @@ public class BaldiWarningHide : MonoBehaviour
             {
                 messageText.text = "*meow*";
                 messageText.fontSize = 120;
+                RectTransform rt = messageText.rectTransform;
+                rt.anchoredPosition = new Vector2(0f, rt.anchoredPosition.y);
 
-                uiiacat.GetComponent<UIIAController>().lookRadius = 500f;
+
                 oggy.GetComponent<EnemyController>().lookRadius = 500f;          
-                uiiacat.GetComponent<UIIAController>().isEnraged = true;
                 oggy.GetComponent<EnemyController>().isEnraged = true; 
-                uiiacat.GetComponent<UIIAController>().ActivateAllWalls();
+
+                //uiiacat.GetComponent<UIIAController>().lookRadius = 500f;
+                //uiiacat.GetComponent<UIIAController>().isEnraged = true;
+                //uiiacat.GetComponent<UIIAController>().ActivateAllWalls();
+                uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>().speed = 15f;
+                uiiacat.GetComponent<UIIAController>().wallLifetime = 60f;
             }
         }
 
