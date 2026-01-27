@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
 public class BaldiEnemy : MonoBehaviour
 {
@@ -20,9 +21,8 @@ public class BaldiEnemy : MonoBehaviour
     public Transform[] patrolPoints;
     private int currentPatrolIndex = 0;
 
-
-
-
+    //for baldi look animation
+    public BaldiLookAnimation baldiLookAnimation;
     void Start()
     {
         target = PlayerManager.instance.player.transform;
@@ -54,16 +54,16 @@ public class BaldiEnemy : MonoBehaviour
                             timer = pauseDuration;
                         }
                     }
-                    else
-                    {
-                        if (timer <= 0f)
-                        {
-                            // resume moving
-                            agent.isStopped = false;
-                            isMoving = true;
-                            timer = moveDuration;
-                        }
-                    }
+                    // else
+                    // {
+                    //     if (timer <= 0f)
+                    //     {
+                    //         // resume moving
+                    //         agent.isStopped = false;
+                    //         isMoving = true;
+                    //         timer = moveDuration;
+                    //     }
+                    // }
 
         if (distance <= lookRadius || isEnraged)
         {
@@ -103,5 +103,14 @@ void GoToRandomPoint()
         currentPatrolIndex = Random.Range(0, patrolPoints.Length);
         agent.SetDestination(patrolPoints[currentPatrolIndex].position);
         Debug.Log("Set a new patrol point for Baldi");
+        baldiLookAnimation.baldiLook();
     }
+
+public void ResumeMoving()
+{
+    //resume moving
+    agent.isStopped = false;
+    isMoving = true;
+    timer = moveDuration;
+}
 }

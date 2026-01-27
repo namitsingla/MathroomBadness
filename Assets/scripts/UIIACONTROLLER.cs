@@ -98,7 +98,8 @@ void ChooseRandomWall()
 
             targetWall = currentTarget.GetComponentInChildren<LockableWall>(true);
             Debug.Log("wall chosen");
-        } while (targetWall.gameObject.activeSelf);
+        } while (false);
+        //targetWall.gameObject.activeSelf
 
          return;
     }
