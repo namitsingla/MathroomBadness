@@ -6,7 +6,6 @@ public class PauseMenu : MonoBehaviour
 {
     public bool GameIsPaused = false;
     public GameObject pauseMenuUI;
-    public VideoPlayer BaldiStrike;
     public AudioSource PauseSound;
 
     public AudioSource BGM;
@@ -33,7 +32,6 @@ public class PauseMenu : MonoBehaviour
         Time.timeScale = 1f;
 
         // Resuming sounds
-        BaldiStrike.Play();
         BGM.UnPause();
         uiiacatmusic.UnPause();
 
@@ -49,7 +47,6 @@ public class PauseMenu : MonoBehaviour
         Time.timeScale = 0f;
 
         // Pausing sounds
-        BaldiStrike.Pause();                    // Pauses Quad 
         BGM.Pause();
         uiiacatmusic.Pause();
 
@@ -63,7 +60,6 @@ public class PauseMenu : MonoBehaviour
     {
         Time.timeScale = 1f;
         GameIsPaused = false;
-        BaldiStrike.Play();
 
         SceneManager.LoadScene(0);
     }
