@@ -91,7 +91,7 @@ public class BaldiWarningHide : MonoBehaviour
                 //uiiacat.GetComponent<UIIAController>().isEnraged = true;
                 //uiiacat.GetComponent<UIIAController>().ActivateAllWalls();
                 uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>().speed = 15f;
-                uiiacat.GetComponent<UIIAController>().wallLifetime = 60f;
+                uiiacat.GetComponent<UIIAController>().wallLifetime = 120f;
             }
         }
 

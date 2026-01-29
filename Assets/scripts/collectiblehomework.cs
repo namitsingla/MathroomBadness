@@ -8,10 +8,9 @@ public class collectiblehomework : MonoBehaviour
    public float rotationSpeed = 50f; // degrees per second
 
    public collectedisplay collecteddisplay;  
-   public AudioClip collectSound;
    public BaldiWarningHide baldiWarning;
-    public AudioMixerGroup MasterMixer; //assign in inspector
     public MusicManager musicManager;
+    public DialogueSoundManager dialogueSoundManager;
 
     public GameObject baldi;
     void Start()
@@ -44,16 +43,8 @@ public class collectiblehomework : MonoBehaviour
             //update the collected display
             collecteddisplay.collected = collecteddisplay.homework + collecteddisplay.chalk;
 
-            // Create a temporary AudioSource for 2D playback
-            GameObject tempGO = new GameObject("TempAudio");
-            AudioSource aSource = tempGO.AddComponent<AudioSource>();
-            aSource.clip = collectSound;
-            aSource.spatialBlend = 0f; // 0 = 2D, 1 = 3D
-            aSource.outputAudioMixerGroup = MasterMixer; //to use audio settings
-            aSource.Play();
-
-            Destroy(tempGO, collectSound.length);
-
+            dialogueSoundManager.PlayCollectSound();
+            musicManager.StartPuaseBGMForCollectionText();
             Destroy(gameObject);
 
             // display collected warning

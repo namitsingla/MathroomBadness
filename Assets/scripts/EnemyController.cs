@@ -9,6 +9,7 @@ public class EnemyController : MonoBehaviour
     NavMeshAgent agent;
     public GameManager targetScript;
     public bool isEnraged = false;
+    public CatchType catchType = CatchType.oggy;
 
     void Start()
     {
@@ -53,7 +54,7 @@ public class EnemyController : MonoBehaviour
 {
     if (other.CompareTag("Player"))
     {
-    targetScript.KhelKhatam();
+    targetScript.KhelKhatam(transform, catchType);
     }
 }
 }

@@ -6,6 +6,8 @@ public class CheatManager : MonoBehaviour
     private float lastKeyTime;
     private float resetDelay = 1.5f;
     public MusicManager musicManager;
+    public UIIAController uIIAController;
+    public GameManager gameManager;
 
     void Update()
     {
@@ -21,6 +23,18 @@ public class CheatManager : MonoBehaviour
                 GangnamStyle();
                 inputBuffer = "";
             }
+
+            if (inputBuffer.Contains("WALLS"))
+            {
+                Walls();
+                inputBuffer = "";
+            }
+
+            if (inputBuffer.Contains("MWUAH"))
+            {
+                Mwuah();
+                inputBuffer = "";
+            }
         }
 
         if (Time.time - lastKeyTime > resetDelay)
@@ -32,6 +46,17 @@ public class CheatManager : MonoBehaviour
         Debug.Log("ITS GANGNAM TIME");
         
         musicManager.PlaySong(3);
-        musicManager.audioSource.volume = 1.0f;
+        musicManager.backgroundSource.volume = 1.0f;
+    }
+
+    void Walls()
+    {
+        uIIAController.ActivateAllWalls();
+    }
+
+    void Mwuah()
+    {
+        gameManager.isDead = true;
+        Debug.Log("mwuah mwuah mwuah");
     }
 }

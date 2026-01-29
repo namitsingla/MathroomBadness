@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
+using System.Collections;
+
 
 public class BaldiEnemy : MonoBehaviour
 {
@@ -23,6 +25,11 @@ public class BaldiEnemy : MonoBehaviour
 
     //for baldi look animation
     public BaldiLookAnimation baldiLookAnimation;
+    //for death
+    public CatchType catchType = CatchType.baldi;
+    //for first detection audio clip
+    private bool firstDetection = false;
+    public DialogueSoundManager dialogueSoundManager;
     void Start()
     {
         target = PlayerManager.instance.player.transform;
@@ -73,7 +80,12 @@ public class BaldiEnemy : MonoBehaviour
             {
                 if (hit.collider.CompareTag("Player") || isEnraged)
                 {
-                   // Debug.Log("Player detected!");
+                   if (!firstDetection && distance <= 60f)
+                    {
+                        firstDetection = true;
+                        StartCoroutine(dialogueSoundManager.PlayBaldiFirstDetection());
+                        Debug.Log("Player detected.");
+                    }
 
                     //set target
                     if (target != null)
@@ -86,14 +98,6 @@ public class BaldiEnemy : MonoBehaviour
         if (!agent.hasPath || agent.remainingDistance < 1f)
         {
             GoToRandomPoint();
-        }
-    }
-
-private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            targetScript.KhelKhatam();
         }
     }
 
@@ -113,4 +117,12 @@ public void ResumeMoving()
     isMoving = true;
     timer = moveDuration;
 }
+
+private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            targetScript.KhelKhatam(transform, catchType);
+        }
+    }
 }

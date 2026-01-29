@@ -1,10 +1,10 @@
 using UnityEngine;
+using System.Collections;
 
 public class MusicManager : MonoBehaviour
 {
-    public AudioSource audioSource;
+    public AudioSource backgroundSource;
     public AudioClip[] songs; // assign all your songs here
-
     void Start()
     {
         if (songs.Length > 0)
@@ -15,8 +15,21 @@ public class MusicManager : MonoBehaviour
     {
         if (index < 0 || index >= songs.Length) return;
 
-        audioSource.Stop();
-        audioSource.clip = songs[index];
-        audioSource.Play();
+        backgroundSource.Stop();
+        backgroundSource.clip = songs[index];
+        backgroundSource.Play();
+    }
+
+    public IEnumerator PuaseBGMForCollectionText()
+    {
+        backgroundSource.Pause();
+
+        yield return new WaitForSeconds(3f);
+        backgroundSource.UnPause(); 
+    }
+
+    public void StartPuaseBGMForCollectionText()
+    {
+        StartCoroutine(PuaseBGMForCollectionText());
     }
 }

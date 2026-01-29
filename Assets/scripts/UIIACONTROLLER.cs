@@ -18,7 +18,9 @@ public class UIIAController : MonoBehaviour
     private Transform currentTarget;
     private LockableWall targetWall;
     //private bool chasingPlayer = false;
-    public float wallLifetime = 30f;
+    public float wallLifetime = 60f;
+    //for death screen
+    public CatchType catchType = CatchType.uiiacat;
 
     void Start()
     {
@@ -87,7 +89,7 @@ public class UIIAController : MonoBehaviour
 {
     if (other.CompareTag("Player"))
     {
-        targetScript.KhelKhatam();
+        targetScript.KhelKhatam(transform, catchType);
     }
 }
 
@@ -103,17 +105,29 @@ void ChooseRandomWall()
 
             targetWall = currentTarget.GetComponentInChildren<LockableWall>(true);
             Debug.Log("wall chosen");
-        } while (targetWall.gameObject.activeSelf);
+        } while (CheckIfAvailableWalls() && targetWall.gameObject.activeSelf);
 
          return;
     }
 
-public void ActivateAllWalls()
+public bool CheckIfAvailableWalls()
     {
         for (int i = 0; i < wallPoints.Length; i++)
         {
+            if (!targetWall.gameObject.activeSelf) return true;
+        }
+
+        return false;
+    }
+
+    public void ActivateAllWalls()
+    {
+        for (int i = 0; i < wallPoints.Length; i++) 
+        {
             wallPoints[i].GetComponentInChildren<LockableWall>(true).ActivateWall();
         }
+        
+        Debug.Log("UIIAAAAA");
     }
 
     public void RemoveWall(LockableWall wallToBeRemoved) 
