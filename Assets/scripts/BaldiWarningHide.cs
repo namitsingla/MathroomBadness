@@ -32,7 +32,7 @@ public class BaldiWarningHide : MonoBehaviour
 
     public void WarningNumber(GameObject item)
     {
-        Debug.Log(item.name);
+        //Debug.Log(item.name);
 
         if (item.CompareTag("Homework"))
         {
@@ -90,8 +90,8 @@ public class BaldiWarningHide : MonoBehaviour
                 //uiiacat.GetComponent<UIIAController>().lookRadius = 500f;
                 //uiiacat.GetComponent<UIIAController>().isEnraged = true;
                 //uiiacat.GetComponent<UIIAController>().ActivateAllWalls();
-                uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>().speed = 15f;
-                uiiacat.GetComponent<UIIAController>().wallLifetime = 120f;
+                uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>().speed *= 1.5f;
+                uiiacat.GetComponent<UIIAController>().wallLifetime *= 1.5f;
             }
         }
 

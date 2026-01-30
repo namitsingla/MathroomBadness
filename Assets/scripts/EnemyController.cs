@@ -5,7 +5,7 @@ public class EnemyController : MonoBehaviour
 {
     public float lookRadius = 20f;
 
-    Transform target;
+    public Transform target;
     NavMeshAgent agent;
     public GameManager targetScript;
     public bool isEnraged = false;
@@ -13,7 +13,6 @@ public class EnemyController : MonoBehaviour
 
     void Start()
     {
-        target = PlayerManager.instance.player.transform;
         agent = GetComponent<NavMeshAgent>();
     }
 

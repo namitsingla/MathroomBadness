@@ -18,6 +18,7 @@ public class BaldiEnemy : MonoBehaviour
      private bool isMoving = true;
     private float timer;
     public bool isEnraged = false;
+    public float speedIncrease = 15f;
     
     //for patrolling
     public Transform[] patrolPoints;
@@ -32,7 +33,6 @@ public class BaldiEnemy : MonoBehaviour
     public DialogueSoundManager dialogueSoundManager;
     void Start()
     {
-        target = PlayerManager.instance.player.transform;
         agent = GetComponent<NavMeshAgent>();
         timer = moveDuration;
     }
@@ -95,7 +95,7 @@ public class BaldiEnemy : MonoBehaviour
             }
         }
         //to set agent to patrolling
-        if (!agent.hasPath || agent.remainingDistance < 1f)
+        if (!isEnraged && !agent.hasPath || agent.remainingDistance < 1f)
         {
             GoToRandomPoint();
         }
@@ -106,7 +106,7 @@ void GoToRandomPoint()
 
         currentPatrolIndex = Random.Range(0, patrolPoints.Length);
         agent.SetDestination(patrolPoints[currentPatrolIndex].position);
-        Debug.Log("Set a new patrol point for Baldi");
+        //Debug.Log("Set a new patrol point for Baldi");
         baldiLookAnimation.baldiLook();
     }
 

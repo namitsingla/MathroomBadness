@@ -3,18 +3,25 @@ using System.Collections;
 using UnityEngine.AI;
 using  UnityEngine.Audio;
 
-public class collectiblehomework : MonoBehaviour
+public class Collectible : MonoBehaviour
 {
    public float rotationSpeed = 50f; // degrees per second
-
-   public collectedisplay collecteddisplay;  
-   public BaldiWarningHide baldiWarning;
-    public MusicManager musicManager;
-    public DialogueSoundManager dialogueSoundManager;
-
-    public GameObject baldi;
-    void Start()
+   collectedisplay collecteddisplay;  
+   BaldiWarningHide baldiWarning;
+   MusicManager musicManager;
+   DialogueSoundManager dialogueSoundManager;
+   SpawnManager spawnManager;
+   GameObject baldi;
+   BaldiEnemy baldiEnemy;
+    void Awake()
     {
+        collecteddisplay = ReferencesManager.instance.collecteddisplay;
+        baldiWarning = ReferencesManager.instance.baldiWarning;
+        musicManager = ReferencesManager.instance.musicManager;
+        dialogueSoundManager = ReferencesManager.instance.dialogueSoundManager;
+        baldi = ReferencesManager.instance.baldi;
+        spawnManager = ReferencesManager.instance.spawnManager;
+        baldiEnemy = ReferencesManager.instance.baldiEnemy;
 
     }
 
@@ -26,6 +33,11 @@ public class collectiblehomework : MonoBehaviour
 
     void OnTriggerEnter(Collider other )
     {
+
+        //spawn next item
+        if (spawnManager.spawnedCount < 1000)
+        spawnManager.SpawnItem(); 
+
         //increase item type count
         if (other.GetComponent<Collider>().CompareTag("Player"))
         {
@@ -42,6 +54,7 @@ public class collectiblehomework : MonoBehaviour
 
             //update the collected display
             collecteddisplay.collected = collecteddisplay.homework + collecteddisplay.chalk;
+            collecteddisplay.UpdateDisplay();
 
             dialogueSoundManager.PlayCollectSound();
             musicManager.StartPuaseBGMForCollectionText();
@@ -53,7 +66,7 @@ public class collectiblehomework : MonoBehaviour
             
 
             // sincrease baldi's speed
-            baldi.GetComponent<NavMeshAgent>().speed = 70 + collecteddisplay.collected*10;
+            baldi.GetComponent<NavMeshAgent>().speed += baldiEnemy.speedIncrease;
 
 
 

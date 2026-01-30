@@ -50,4 +50,28 @@ public class StartMenu : MonoBehaviour
       sensitivitySlider.value = 0.7f;
       volumeSlider.value = 0f;
    }
+
+   public void SetEasy()
+   {
+      SettingsData.Difficulty = 0;
+      StartClass();
+   }
+
+   public void SetNormal()
+   {
+      SettingsData.Difficulty = 1;
+      StartClass();
+   }
+
+   public void SetHard()
+   {
+      SettingsData.Difficulty = 2;
+      StartClass();
+   }
+
+   public void SetMadness()
+   {
+      SettingsData.Difficulty = 3;
+      StartClass();
+   }
 }

@@ -6,7 +6,7 @@ public class UIIAController : MonoBehaviour
 {
     public float lookRadius = 40f;
 
-    Transform target;
+    public Transform target;
     NavMeshAgent agent;
     public GameManager targetScript;
     public bool isEnraged = false;
@@ -24,7 +24,6 @@ public class UIIAController : MonoBehaviour
 
     void Start()
     {
-        target = PlayerManager.instance.player.transform;
         agent = GetComponent<NavMeshAgent>();
     }
 

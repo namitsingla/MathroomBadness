@@ -3,7 +3,7 @@ using UnityEngine;
 public class camerabob : MonoBehaviour
 {
  public float bobSpeed = 6f;      // How fast the bob oscillates
-    public float bobAmount = 0.3f;  // How much the camera moves
+    public float bobAmount = 0.5f;  // How much the camera moves
     public CharacterController controller;
 
     private float defaultYPos;

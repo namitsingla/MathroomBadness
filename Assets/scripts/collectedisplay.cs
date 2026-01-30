@@ -9,8 +9,8 @@ public class collectedisplay : MonoBehaviour
    public int chalk = 0;
     public int collected = 0;
 
-    void Update()
+    public void UpdateDisplay()
     {
-        textMeshPro.text = "Collected: " + collected + "/7";
+        textMeshPro.text = "Collected: " + collected;
     }
 }

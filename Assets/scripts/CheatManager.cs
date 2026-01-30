@@ -56,7 +56,10 @@ public class CheatManager : MonoBehaviour
 
     void Mwuah()
     {
-        gameManager.isDead = true;
+        if (!gameManager.isDead) 
+            gameManager.isDead = true;
+        else gameManager.isDead = false;
+        
         Debug.Log("mwuah mwuah mwuah");
     }
 }
