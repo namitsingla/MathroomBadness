@@ -18,6 +18,7 @@ public class BaldiEnemy : MonoBehaviour
      private bool isMoving = true;
     private float timer;
     public bool isEnraged = false;
+    public float baldiBaseSpeed = 70f;
     public float speedIncrease = 15f;
     
     //for patrolling

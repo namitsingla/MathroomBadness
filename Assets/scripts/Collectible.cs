@@ -13,6 +13,7 @@ public class Collectible : MonoBehaviour
    SpawnManager spawnManager;
    GameObject baldi;
    BaldiEnemy baldiEnemy;
+   ExitDoor exitDoor;
     void Awake()
     {
         collecteddisplay = ReferencesManager.instance.collecteddisplay;
@@ -22,6 +23,7 @@ public class Collectible : MonoBehaviour
         baldi = ReferencesManager.instance.baldi;
         spawnManager = ReferencesManager.instance.spawnManager;
         baldiEnemy = ReferencesManager.instance.baldiEnemy;
+        exitDoor = ReferencesManager.instance.exitDoor;
 
     }
 
@@ -33,14 +35,13 @@ public class Collectible : MonoBehaviour
 
     void OnTriggerEnter(Collider other )
     {
+        if (!other.GetComponent<Collider>().CompareTag("Player")) return;
 
         //spawn next item
         if (spawnManager.spawnedCount < 1000)
         spawnManager.SpawnItem(); 
 
         //increase item type count
-        if (other.GetComponent<Collider>().CompareTag("Player"))
-        {
             if (gameObject.CompareTag("Homework"))
             {
                 collecteddisplay.homework += 1;
@@ -55,6 +56,9 @@ public class Collectible : MonoBehaviour
             //update the collected display
             collecteddisplay.collected = collecteddisplay.homework + collecteddisplay.chalk;
             collecteddisplay.UpdateDisplay();
+
+            //activate exit door if collected = 3
+            if (collecteddisplay.collected == 3) exitDoor.ActivateExitDoor();
 
             dialogueSoundManager.PlayCollectSound();
             musicManager.StartPuaseBGMForCollectionText();
@@ -78,8 +82,7 @@ public class Collectible : MonoBehaviour
             else if (collecteddisplay.collected == 6)
             {
                 musicManager.PlaySong(2); // play song 3 after 6 items
-            }
-        }        
+            }     
     }
 
 }

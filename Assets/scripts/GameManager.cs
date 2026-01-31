@@ -27,6 +27,7 @@ public class GameManager : MonoBehaviour
     public bool isDead = false;
     private float deathScreenTime = 2.5f;
     public DialogueSoundManager dialogueSoundManager;
+    public SpawnManager spawnManager;
 
     //for baldi death screen
     public RawImage baldiJumpscare;
@@ -119,7 +120,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    IEnumerator FinishDeathSequence()
+    public IEnumerator FinishDeathSequence()
     {
         yield return new WaitForSeconds(deathScreenTime);
 
@@ -131,15 +132,17 @@ public class GameManager : MonoBehaviour
             baldi.SetActive(true);
             BGM.UnPause();
 
-            baldi.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(baldispawn);
-            baldi.GetComponent<UnityEngine.AI.NavMeshAgent>().Warp(baldispawn);
+            //baldi.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(baldispawn);
+            //baldi.GetComponent<UnityEngine.AI.NavMeshAgent>().Warp(baldispawn);
 
-            uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(uiiacatspawn);
-            uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>().Warp(uiiacatspawn);
+            //uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(uiiacatspawn);
+            //uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>().Warp(uiiacatspawn);
 
-            oggy.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(oggyspawn);
-            oggy.GetComponent<UnityEngine.AI.NavMeshAgent>().Warp(oggyspawn);
-
+            //oggy.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(oggyspawn);
+            //oggy.GetComponent<UnityEngine.AI.NavMeshAgent>().Warp(oggyspawn);
+            
+            spawnManager.SpawnAllEnemies();
+            
             player.GetComponent<CharacterController>().enabled = false;
             player.transform.position = playerspawn;
             player.GetComponent<CharacterController>().enabled = true;

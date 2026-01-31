@@ -29,6 +29,8 @@ public class DifficultyManager : MonoBehaviour
             spawnManager.spawnCount += 1;
             spawnManager.minDistanceFromPlayer *= 0.75f;
             spawnManager.minDistanceFromOtherSpawns *= 0.75f;
+            spawnManager.minEnemyDistanceFromPlayer *= 1.25f;
+            spawnManager.maxEnemyDistanceFromPlayer *= 1.25f;
 
             RenderSettings.fogDensity = 0.02f;
         }
@@ -49,6 +51,8 @@ public class DifficultyManager : MonoBehaviour
             //spawnManager.spawnCount -= 1;
             spawnManager.minDistanceFromPlayer *= 1.25f;
             spawnManager.minDistanceFromOtherSpawns *= 1.25f;
+            spawnManager.minEnemyDistanceFromPlayer *= 0.67f;
+            spawnManager.maxEnemyDistanceFromPlayer *= 0.9f;
 
             RenderSettings.fogDensity = 0.05f;
         }
@@ -69,6 +73,8 @@ public class DifficultyManager : MonoBehaviour
             spawnManager.spawnCount -= 1;
             spawnManager.minDistanceFromPlayer *= 1.25f;
             spawnManager.minDistanceFromOtherSpawns *= 1.25f;
+            spawnManager.minEnemyDistanceFromPlayer *= 0.25f;
+            spawnManager.maxEnemyDistanceFromPlayer *= 0.9f;
 
             RenderSettings.fogDensity = 0.06f;
             gameManager.lives = 1;

@@ -4,7 +4,6 @@ public class SettingsData
 {
     public static float CameraSensitivity = 0.7f;
     public static int Difficulty = 1;
-    
     public static float baldiSpeed = 70f;
     public static float n = 0f;
 

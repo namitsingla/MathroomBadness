@@ -4,12 +4,14 @@ using UnityEngine.AI;
 [RequireComponent(typeof(CharacterController))]
 public class player_controller : MonoBehaviour
 {
-    public float moveSpeed = 1f;
+    public float moveSpeed = 10f;
     public float mouseSensitivity = 300f;
     public Transform cameraTransform;
 
     private CharacterController controller;
     private float xRotation = 0f;
+
+    public float lookBackAngle = 180f;
 
     void Start()
     {
@@ -38,6 +40,12 @@ public class player_controller : MonoBehaviour
         if (NavMesh.SamplePosition(transform.position, out hit, 1.0f, NavMesh.AllAreas))
         {
             transform.position = hit.position;
+        }
+
+        //for looking back
+        if (Input.GetKey(KeyCode.Space))
+        {
+            cameraTransform.Rotate(0, lookBackAngle, 0);
         }
     }
 }

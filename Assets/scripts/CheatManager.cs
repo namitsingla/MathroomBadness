@@ -8,6 +8,7 @@ public class CheatManager : MonoBehaviour
     public MusicManager musicManager;
     public UIIAController uIIAController;
     public GameManager gameManager;
+    public player_controller player_Controller;
 
     void Update()
     {
@@ -57,8 +58,15 @@ public class CheatManager : MonoBehaviour
     void Mwuah()
     {
         if (!gameManager.isDead) 
+        {
             gameManager.isDead = true;
-        else gameManager.isDead = false;
+            player_Controller.moveSpeed *= 5f;
+        }
+        else 
+        {
+            gameManager.isDead = false;
+            player_Controller.moveSpeed *= 0.2f;
+        }
         
         Debug.Log("mwuah mwuah mwuah");
     }

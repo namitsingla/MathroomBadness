@@ -11,6 +11,9 @@ public class ReferencesManager : MonoBehaviour
    public DialogueSoundManager dialogueSoundManager;
    public SpawnManager spawnManager;
    public BaldiEnemy baldiEnemy;
+   //public Renderer targetRenderer;
+   //public GameObject lockedIcon;
+   public ExitDoor exitDoor;
 
     void Awake () 
     {

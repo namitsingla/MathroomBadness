@@ -14,6 +14,13 @@ public class SpawnManager : MonoBehaviour
    public float minDistanceFromPlayer = 200f;
    public float minDistanceFromOtherSpawns = 100f;
 
+   public UnityEngine.AI.NavMeshAgent baldi;
+   public UnityEngine.AI.NavMeshAgent uiia;
+   public UnityEngine.AI.NavMeshAgent oggy;
+
+   public float minEnemyDistanceFromPlayer = 200f;
+   public float maxEnemyDistanceFromPlayer = 400f;
+
    List<Vector3> spawnedPositions = new List<Vector3>();
 
    private GameObject currentItemToBeSpawned;
@@ -23,6 +30,8 @@ public class SpawnManager : MonoBehaviour
 
     void Start()
     {
+        SpawnAllEnemies();
+
         currentItemToBeSpawned = homework;
 
         for (int i = 0; i < spawnCount; i++)
@@ -67,16 +76,14 @@ public class SpawnManager : MonoBehaviour
         if (valid.Count != 0) 
         {
             chosen = valid[Random.Range(0, valid.Count)]; 
-            Debug.Log("Player position: " + player.position);
-            Debug.Log("Spawned an object at distance " + (int)Vector3.Distance(chosen.transform.position, player.position));
+            //Debug.Log("Player position: " + player.position);
+            //Debug.Log("Spawned an object at distance " + (int)Vector3.Distance(chosen.transform.position, player.position));
 
             foreach (var pos in spawnedPositions)
             {
-                Debug.Log("Item position: " + pos);
-                Debug.Log("Distance from said object: " + (int)Vector3.Distance(chosen.transform.position, pos));
+                //Debug.Log("Item position: " + pos);
+                //Debug.Log("Distance from said object: " + (int)Vector3.Distance(chosen.transform.position, pos));
             }
-
-            Debug.Log(" ");
         }
         else
         {
@@ -110,6 +117,55 @@ public class SpawnManager : MonoBehaviour
         }
 
         return farthest;
+    }
+
+    public void SpawnAllEnemies()
+    {
+        SpawnEnemy(baldi);
+        SpawnEnemy(uiia);
+        SpawnEnemy(oggy);
+    }
+
+    public void SpawnEnemy(UnityEngine.AI.NavMeshAgent enemy)
+    {
+        // Reset all spawn points
+        foreach (var sp in spawnPoints)
+            sp.active = true;
+
+        // Disable near player
+        foreach (var sp in spawnPoints)
+        {
+            if (Vector3.Distance(sp.transform.position, player.position) < minEnemyDistanceFromPlayer)
+                sp.active = false;
+        }
+
+        // Disable far from player
+        foreach (var sp in spawnPoints)
+        {
+            if (Vector3.Distance(sp.transform.position, player.position) > maxEnemyDistanceFromPlayer)
+                sp.active = false;
+        }
+
+        // Collect valid points
+        List<SpawnPoint> valid = new List<SpawnPoint>();
+        foreach (var sp in spawnPoints)
+            if (sp.active) valid.Add(sp);
+
+        // Pick random and spawn
+        SpawnPoint chosen;
+
+        if (valid.Count != 0) 
+        {
+            chosen = valid[Random.Range(0, valid.Count)]; 
+        }
+        else
+        {
+            //for when no valid spawn point
+            chosen = GetFarthestSpawnPoint();
+            Debug.Log("No valid spawn point. Chose the farthest one possible");
+        }
+
+        enemy.Warp(chosen.transform.position);
     }
 
     // This is to assign spawn points automatically from inspector

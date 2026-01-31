@@ -136,11 +136,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   rotationSpeed: 50
-  collecteddisplay: {fileID: 0}
-  baldiWarning: {fileID: 0}
-  musicManager: {fileID: 0}
-  dialogueSoundManager: {fileID: 0}
-  baldi: {fileID: 0}
+  exitDoor: {fileID: 3833832840614412448, guid: 2eb9be281d3f59149977e3383ae05f52, type: 3}
 --- !u!65 &9219665736504522294
 BoxCollider:
   m_ObjectHideFlags: 0
