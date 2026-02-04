@@ -18,12 +18,6 @@ public class ExitDoorSpawner : MonoBehaviour
     {
         int index = Random.Range(0, spawnPoints.Length);
 
-        // GameObject obj = Instantiate(
-        //     exitDoor,
-        //     spawnPoints[index].position,
-        //     spawnPoints[index].rotation
-        // );  
-
         exitDoor.position = spawnPoints[index].position;
         exitDoor.rotation = spawnPoints[index].rotation;
     }

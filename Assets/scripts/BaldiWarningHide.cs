@@ -36,62 +36,154 @@ public class BaldiWarningHide : MonoBehaviour
 
         if (item.CompareTag("Homework"))
         {
-            if (collecteddisplay.homework == 1)
-            {
-                messageText.text = "Baldi is fuming - that was his best doodle";
-                messageText.fontSize = 50;
-                baldi_talk.enabled = true;
-            }
-
-            if (collecteddisplay.homework == 2)
-            {
-                messageText.text = "“Another unfinished assignment.... you'll never finish them all!”";
-                messageText.fontSize = 40;
-                baldi_talk.enabled = true;
-            }
-
-            if (collecteddisplay.homework == 3)
+            if (collecteddisplay.homework == 4 && !baldi.GetComponent<BaldiEnemy>().isEnraged)
             {
                 messageText.text = "*strikes*";
                 messageText.fontSize = 120;
-
-                baldi.GetComponent<BaldiEnemy>().lookRadius = 500f;
-                baldi.GetComponent<BaldiEnemy>().isEnraged = true;
                 baldi_frown.enabled = true;
+
+                if (!baldi.GetComponent<BaldiEnemy>().isEnraged)
+                {
+                    baldi.GetComponent<BaldiEnemy>().lookRadius = 1000f;
+                    baldi.GetComponent<BaldiEnemy>().isEnraged = true;   
+                }
+            }
+            else
+            {
+                int randoText = Random.Range(0, 9);
+
+                switch (randoText)
+                {
+                 case 0:
+                    messageText.text = "Baldi is fuming - that was his best doodle";
+                    messageText.fontSize = 50;
+                    baldi_talk.enabled = true;
+                    break;
+
+                case 1:
+                    messageText.text = "“Another unfinished assignment.... you'll never finish them all!”";
+                    messageText.fontSize = 40;
+                    baldi_talk.enabled = true;
+                    break;
+
+                case 2:
+                    messageText.text = "Baldi's slaps grow louder...";
+                    messageText.fontSize = 50;
+                    baldi_talk.enabled = true;
+                    break; 
+
+                case 3:
+                    messageText.text = "I don’t like repeating myself… especially mistakes.";
+                    messageText.fontSize = 50;
+                    baldi_talk.enabled = true;
+                    break;
+
+                case 4:
+                    messageText.text = "I was having a good day. You changed that.";
+                    messageText.fontSize = 60;
+                    baldi_talk.enabled = true;
+                    break;
+
+                case 5:
+                    messageText.text = "I see we’re skipping the “learning” part today.";
+                    messageText.fontSize = 60;
+                    baldi_talk.enabled = true;
+                    break;   
+
+                case 6:
+                    messageText.text = "Class dismissed… for you.";
+                    messageText.fontSize = 60;
+                    baldi_talk.enabled = true;
+                    break; 
+
+                case 7:
+                    messageText.text = "That assignment had feelings, you know.";
+                    messageText.fontSize = 60;
+                    baldi_talk.enabled = true;
+                    break;
+
+                case 8:
+                    messageText.text = "You’ll pay for that doodle.";
+                    messageText.fontSize = 60;
+                    baldi_talk.enabled = true;
+                    break;  
+                }
             }
         }
         else if (item.CompareTag("Chalk"))
         {
-            if (collecteddisplay.chalk == 1)
-            {
-                 messageText.text = "One less chalk stick for Baldi! His slaps grow louder…";
-                 messageText.fontSize = 45;
-                 baldi_rotate.enabled =true;
-            }
-
-            if (collecteddisplay.chalk == 2)
-            {
-                messageText.text = "Snap! Baldi can’t write now, but he sure can chase.";
-                messageText.fontSize = 50; 
-                baldi_rotate.enabled =true;          
-            }
-
-            if (collecteddisplay.chalk == 3)
+            if (collecteddisplay.chalk == 4 && !oggy.GetComponent<EnemyController>().isEnraged)
             {
                 messageText.text = "*meow*";
                 messageText.fontSize = 120;
                 RectTransform rt = messageText.rectTransform;
                 rt.anchoredPosition = new Vector2(0f, rt.anchoredPosition.y);
 
-
-                oggy.GetComponent<EnemyController>().lookRadius = 500f;          
-                oggy.GetComponent<EnemyController>().isEnraged = true; 
+                if (!oggy.GetComponent<EnemyController>().isEnraged)
+                {
+                    oggy.GetComponent<EnemyController>().lookRadius = 500f;          
+                    oggy.GetComponent<EnemyController>().isEnraged = true; 
+                }
+                
 
                 //uiiacat.GetComponent<UIIAController>().lookRadius = 500f;
-                //uiiacat.GetComponent<UIIAController>().isEnraged = true;
                 //uiiacat.GetComponent<UIIAController>().ActivateAllWalls();
-                uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>().speed *= 1.5f;
-                uiiacat.GetComponent<UIIAController>().wallLifetime *= 1.5f;
+
+                if (!uiiacat.GetComponent<UIIAController>().isEnraged)
+                {
+                    uiiacat.GetComponent<UIIAController>().isEnraged = true;
+                    uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>().speed *= 1.5f;
+                    uiiacat.GetComponent<UIIAController>().wallLifetime *= 1.5f;   
+                }
+            }
+            else
+            {
+                int randoText = Random.Range(0, 7);
+
+                switch (randoText)
+                {
+                    case 0:
+                        messageText.text = "One less chalk stick for Baldi! His slaps grow louder…";
+                        messageText.fontSize = 45;
+                        baldi_rotate.enabled =true;
+                        break;
+
+                    case 1:
+                        messageText.text = "Snap! Baldi can’t write now, but he sure can chase.";
+                        messageText.fontSize = 50; 
+                        baldi_rotate.enabled =true; 
+                        break;
+
+                    case 2:
+                        messageText.text = "The chalk is gone. The lesson continues.";
+                        messageText.fontSize = 50; 
+                        baldi_rotate.enabled =true;   
+                        break;
+
+                    case 3:
+                        messageText.text = "No chalk left to teach… guess I’ll demonstrate instead.";
+                        messageText.fontSize = 50; 
+                        baldi_rotate.enabled =true;   
+                        break;
+
+                    case 4:
+                        messageText.text = "I expected better. I shouldn’t have.";
+                        messageText.fontSize = 45; 
+                        baldi_rotate.enabled =true;   
+                        break;
+
+                    case 5:
+                        messageText.text = "Running won’t improve your grade.";
+                        messageText.fontSize = 45; 
+                        baldi_rotate.enabled =true;   
+                        break;
+
+                    case 6:
+                        messageText.text = "Creative work deserves respect. You showed none.";
+                        messageText.fontSize = 50; 
+                        baldi_rotate.enabled =true;   
+                        break;
+                }
             }
         }
 

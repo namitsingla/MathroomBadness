@@ -11,5 +11,7 @@ public class ScoreCalculator : MonoBehaviour
         collectedisplay.collected = 0;
         collectedisplay.chalk = 0;
         collectedisplay.homework = 0;
+
+        collectedisplay.timer = 0f;
     }
 }

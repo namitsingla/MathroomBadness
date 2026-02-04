@@ -10,7 +10,7 @@ public class UIIAController : MonoBehaviour
     NavMeshAgent agent;
     public GameManager targetScript;
     public bool isEnraged = false;
-    public bool hasSwitched = false;
+    //public bool hasSwitched = false;
     public UIIAmusicmanager MusicManager;
 
     //for patrolling
@@ -21,6 +21,7 @@ public class UIIAController : MonoBehaviour
     public float wallLifetime = 60f;
     //for death screen
     public CatchType catchType = CatchType.uiiacat;
+    public PowerSystem powerSystem;
 
     void Start()
     {
@@ -34,13 +35,13 @@ public class UIIAController : MonoBehaviour
         //checking if within range
         float distance = Vector3.Distance(target.position, transform.position);
 
-        if (distance <= lookRadius || isEnraged)
+        if (distance <= lookRadius)
         {
             Vector3 direction = (target.position - transform.position).normalized;
 
-            if (Physics.Raycast(transform.position, direction, out RaycastHit hit, lookRadius) || isEnraged)
+            if (Physics.Raycast(transform.position, direction, out RaycastHit hit, lookRadius))
             {
-                if (hit.collider.CompareTag("Player") || isEnraged)
+                if (hit.collider.CompareTag("Player"))
                 {
                     agent.SetDestination(target.position); //sets target on player
                     //Debug.Log("Player detected!");
@@ -50,20 +51,20 @@ public class UIIAController : MonoBehaviour
                     targetWall = null;
                     //Debug.Log("wall removed from target.");
 
-                    if (!hasSwitched)
-                    {
-                        //switches song when player gets in range
-                        MusicManager.PlayRandomSong();
-                        hasSwitched = true;
-                    }
-                    return;
+                    // if (!hasSwitched)
+                    // {
+                    //     //switches song when player gets in range
+                    //     MusicManager.PlayRandomSong();
+                    //     hasSwitched = true;
+                    // }
+                    // return;
                 }
             }
         }
 
         //if cat lost the player
         //chasingPlayer = false;
-        hasSwitched = false;
+        //hasSwitched = false;
 
         if (!agent.pathPending && (!agent.hasPath || agent.remainingDistance <= agent.stoppingDistance))
         {
@@ -85,12 +86,18 @@ public class UIIAController : MonoBehaviour
         // }
     }
     private void OnTriggerEnter(Collider other)
-{
-    if (other.CompareTag("Player"))
     {
-        targetScript.KhelKhatam(transform, catchType);
+        if (other.CompareTag("Player"))
+        {
+            if (powerSystem.isPowerDotOn)
+            {
+                powerSystem.StartCoroutine(powerSystem.PowerDotTeleport(agent));
+                return;
+            }
+
+            targetScript.KhelKhatam(transform, catchType);
+        }
     }
-}
 
 void ChooseRandomWall()
     {
@@ -119,11 +126,11 @@ public bool CheckIfAvailableWalls()
         return false;
     }
 
-    public void ActivateAllWalls()
+    public void DeactivateAllWalls()
     {
         for (int i = 0; i < wallPoints.Length; i++) 
         {
-            wallPoints[i].GetComponentInChildren<LockableWall>(true).ActivateWall();
+            wallPoints[i].GetComponentInChildren<LockableWall>(true).DeactivateWall();
         }
         
         Debug.Log("UIIAAAAA");

@@ -4,7 +4,7 @@ using UnityEngine.AI;
 [RequireComponent(typeof(CharacterController))]
 public class player_controller : MonoBehaviour
 {
-    public float moveSpeed = 10f;
+    public float moveSpeed = 11f;
     public float mouseSensitivity = 300f;
     public Transform cameraTransform;
 

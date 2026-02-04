@@ -33,8 +33,13 @@ public class GameManager : MonoBehaviour
     public RawImage baldiJumpscare;
     public RectTransform baldiJumpscarePosiiton;
     public AudioSource BGM;
+    public PowerSystem powerSystem;
+    public float gameSpeed = 1f;
+    public UIIAController uIIAController;
     public void KhelKhatam(Transform lookTarget, CatchType type)
     {
+        if (powerSystem.isPowerDotOn) return;
+
         if (isDead) return;
 
             lives -= 1;
@@ -142,6 +147,7 @@ public class GameManager : MonoBehaviour
             //oggy.GetComponent<UnityEngine.AI.NavMeshAgent>().Warp(oggyspawn);
             
             spawnManager.SpawnAllEnemies();
+            uIIAController.DeactivateAllWalls();
             
             player.GetComponent<CharacterController>().enabled = false;
             player.transform.position = playerspawn;
@@ -150,6 +156,7 @@ public class GameManager : MonoBehaviour
         else
         {
             Cursor.lockState = CursorLockMode.None; // Unlocks the cursor for menus
+            Time.timeScale = 1f;
             SceneManager.LoadScene(0);
         }
     }

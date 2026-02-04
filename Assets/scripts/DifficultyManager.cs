@@ -5,7 +5,7 @@ public class DifficultyManager : MonoBehaviour
     public BaldiEnemy baldiEnemy;
     public UnityEngine.AI.NavMeshAgent baldiNavMesh;
     public EnemyController oggyController;
-    public UnityEngine.AI.NavMeshAgent oggyNavMesh;
+    public EnemyController oggy;
     public UIIAController uIIAController;
     public UnityEngine.AI.NavMeshAgent uiiaNavMesh;
     public SpawnManager spawnManager;
@@ -20,7 +20,7 @@ public class DifficultyManager : MonoBehaviour
             baldiNavMesh.speed *= 0.7f;
 
             oggyController.lookRadius *= 0.67f;
-            oggyNavMesh.speed *= 0.7f;
+            oggy.oggyBAseSpeed *= 0.7f;
 
             uIIAController.lookRadius *= 0.67f;
             uIIAController.wallLifetime *= 0.5f;
@@ -42,13 +42,13 @@ public class DifficultyManager : MonoBehaviour
             baldiNavMesh.speed *= 1.5f;
 
             oggyController.lookRadius *= 1.5f;
-            oggyNavMesh.speed *= 1.5f;
+            oggy.oggyBAseSpeed *= 1.5f;
 
             uIIAController.lookRadius *= 1.5f;
             uIIAController.wallLifetime *= 1.5f;
             uiiaNavMesh.speed *= 1.5f;
 
-            //spawnManager.spawnCount -= 1;
+            spawnManager.spawnCount -= 1;
             spawnManager.minDistanceFromPlayer *= 1.25f;
             spawnManager.minDistanceFromOtherSpawns *= 1.25f;
             spawnManager.minEnemyDistanceFromPlayer *= 0.67f;
@@ -64,13 +64,13 @@ public class DifficultyManager : MonoBehaviour
             baldiNavMesh.speed *= 2f;
 
             oggyController.lookRadius *= 2f;
-            oggyNavMesh.speed *= 2f;
+            oggy.oggyBAseSpeed *= 2f;
 
             uIIAController.lookRadius *= 2f;
             uIIAController.wallLifetime *= 2f;
             uiiaNavMesh.speed *= 2f;
 
-            spawnManager.spawnCount -= 1;
+            spawnManager.spawnCount -= 2;
             spawnManager.minDistanceFromPlayer *= 1.25f;
             spawnManager.minDistanceFromOtherSpawns *= 1.25f;
             spawnManager.minEnemyDistanceFromPlayer *= 0.25f;

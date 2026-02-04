@@ -70,18 +70,16 @@ public class Collectible : MonoBehaviour
             
 
             // sincrease baldi's speed
-            baldi.GetComponent<NavMeshAgent>().speed += baldiEnemy.speedIncrease;
-
-
+            baldi.GetComponent<NavMeshAgent>().speed = baldiEnemy.baldiBaseSpeed + baldiEnemy.speedIncrease*collecteddisplay.collected;
 
             // Change background music
             if (collecteddisplay.collected == 3)
             {
                 musicManager.PlaySong(1); // play song 2 after 3 items
             }
-            else if (collecteddisplay.collected == 6)
+            else if (collecteddisplay.collected == 5)
             {
-                musicManager.PlaySong(2); // play song 3 after 6 items
+                musicManager.PlaySong(2); // play song 3 after 5 items
             }     
     }
 

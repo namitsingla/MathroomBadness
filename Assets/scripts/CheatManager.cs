@@ -9,6 +9,8 @@ public class CheatManager : MonoBehaviour
     public UIIAController uIIAController;
     public GameManager gameManager;
     public player_controller player_Controller;
+    public ExitDoor exitDoor;
+    public RarityManager rarityManager;
 
     void Update()
     {
@@ -31,9 +33,21 @@ public class CheatManager : MonoBehaviour
                 inputBuffer = "";
             }
 
-            if (inputBuffer.Contains("MWUAH"))
+            if (inputBuffer.Contains("VIVIIKUN"))
             {
-                Mwuah();
+                ViviiKun();
+                inputBuffer = "";
+            }
+
+            if (inputBuffer.Contains("PKPKPK"))
+            {
+                PkPkPk();
+                inputBuffer = "";
+            }
+
+            if (inputBuffer.Contains("GOPALA"))
+            {
+                ReRoll();
                 inputBuffer = "";
             }
         }
@@ -52,10 +66,10 @@ public class CheatManager : MonoBehaviour
 
     void Walls()
     {
-        uIIAController.ActivateAllWalls();
+        uIIAController.DeactivateAllWalls();
     }
 
-    void Mwuah()
+    void ViviiKun()
     {
         if (!gameManager.isDead) 
         {
@@ -69,5 +83,15 @@ public class CheatManager : MonoBehaviour
         }
         
         Debug.Log("mwuah mwuah mwuah");
+    }
+
+    void PkPkPk()
+    {
+        exitDoor.RoundEndSequence();
+    }
+
+    void ReRoll()
+    {
+        rarityManager.GenerateRewards();
     }
 }

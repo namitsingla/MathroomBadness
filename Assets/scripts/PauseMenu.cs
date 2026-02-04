@@ -10,6 +10,7 @@ public class PauseMenu : MonoBehaviour
 
     public AudioSource BGM;
     public AudioSource uiiacatmusic;
+    public GameManager gameManager;
     
     void Update()
     {
@@ -29,7 +30,7 @@ public class PauseMenu : MonoBehaviour
     public void Resume()
     {
         pauseMenuUI.SetActive(false);
-        Time.timeScale = 1f;
+        Time.timeScale = gameManager.gameSpeed;
 
         // Resuming sounds
         BGM.UnPause();

@@ -14,6 +14,8 @@ public class ReferencesManager : MonoBehaviour
    //public Renderer targetRenderer;
    //public GameObject lockedIcon;
    public ExitDoor exitDoor;
+   public BoostsHandler boostsHandler;
+   public Transform player;
 
     void Awake () 
     {

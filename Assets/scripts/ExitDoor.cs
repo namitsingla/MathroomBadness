@@ -17,9 +17,10 @@ public class ExitDoor : MonoBehaviour
     public SpawnManager spawnManager;
     public BaldiEnemy baldiEnemy;
     public UnityEngine.AI.NavMeshAgent uiia;
-    public UnityEngine.AI.NavMeshAgent oggy;
+    public EnemyController oggy;
     public ExitDoorSpawner exitDoorSpawner;
     public RarityManager rarityManager;
+    public UIIAController uIIAController;
     void Awake()
     {
         //targetRenderer = ReferencesManager.instance.targetRenderer;
@@ -72,11 +73,19 @@ public class ExitDoor : MonoBehaviour
         player.GetComponent<CharacterController>().enabled = true;
 
         spawnManager.SpawnAllEnemies();
+        spawnManager.DeleteAllCollectibles();
 
-        baldiEnemy.baldiBaseSpeed *= 1.1f;
+        for (int i = 0; i < spawnManager.spawnCount; i++)
+        {
+            spawnManager.SpawnItem();
+        }
+
+        baldiEnemy.baldiBaseSpeed *= 1.2f;
         baldiEnemy.agent.speed = baldiEnemy.baldiBaseSpeed;
-        uiia.speed *= 1.1f;
-        oggy.speed *= 1.1f;
+        uiia.speed *= 1.2f;
+        oggy.oggyBAseSpeed *= 1.2f;
+
+        uIIAController.DeactivateAllWalls();
         
         DeactivateExitDoor();
         exitDoorSpawner.SpawnExitDoor();

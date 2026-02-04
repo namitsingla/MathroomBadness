@@ -23,6 +23,7 @@ public class collectedisplay : MonoBehaviour
 
     public void Update()
     {
+        UpdateDisplay();
         timer += Time.deltaTime;
     }
 }

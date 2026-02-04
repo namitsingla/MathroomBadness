@@ -32,6 +32,7 @@ public class BaldiEnemy : MonoBehaviour
     //for first detection audio clip
     private bool firstDetection = false;
     public DialogueSoundManager dialogueSoundManager;
+    public PowerSystem powerSystem;
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -123,6 +124,12 @@ private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
+            if (powerSystem.isPowerDotOn)
+            {
+                powerSystem.StartCoroutine(powerSystem.PowerDotTeleport(agent));
+                return;
+            }
+
             targetScript.KhelKhatam(transform, catchType);
         }
     }

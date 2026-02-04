@@ -31,16 +31,17 @@ public class RarityManager : MonoBehaviour
     //public collectedisplay collectedisplay;
     public AudioSource BGM;
     public collectedisplay collectedisplay;
+    public MusicManager musicManager;
 
     public Reward GetRandomReward()
     {
         int roll = Random.Range(0,100);
 
-        if(roll < 59)
+        if(roll < 45)
             return GetRandomFromRarity(Rarity.Common);
-        else if(roll < 88)
+        else if(roll < 70)
             return GetRandomFromRarity(Rarity.Rare);
-        else if(roll < 97)
+        else if(roll < 95)
             return GetRandomFromRarity(Rarity.Epic);
         else 
             return GetRandomFromRarity(Rarity.Cursed);
@@ -113,21 +114,83 @@ public class RarityManager : MonoBehaviour
             case "Vision Increase":
                 boostsHandler.VisionIncrease();
                 break;
+
+            case "Minimap Increase":
+                boostsHandler.MinimapIncrease();
+                break;
+
+            case "Slow Down Enemies":
+                boostsHandler.SlowDownEnemies();
+                break;
+
+            case "Invincibility Shield":
+                boostsHandler.InvincibilityShield();
+                break;
+
+            case "Teleporter":
+                boostsHandler.Teleporter();
+                break;
+
+            case "Stunner":
+                boostsHandler.Stunner();
+                break;
+
+            case "Ragebait Baldi":
+                boostsHandler.RagebaitBaldi();
+                break;
+
+            case "Radar":
+                boostsHandler.Radar();
+                break;
+
+            case "Power Dot":
+                boostsHandler.PowerDot();
+                break;  
+
+            case "Wall Breaker":
+                boostsHandler.WallBreaker();
+                break;
+
+            case "An Extra Life":
+                boostsHandler.AnExtraLife();
+                break;
+
+            case "Wall Runner":
+                boostsHandler.WallRunner();
+                break;   
+
+            case "A Random PowerUp Each Round":
+                boostsHandler.RandomPowerUp();
+                break;  
+
+            case "Minimap Eater":
+                boostsHandler.MiniMapEater();
+                break; 
+
+            case "Time SpeedUp":
+                boostsHandler.TimeSpeedUp();
+                break;
+
+            case "Increase Item Spawn Rate":
+                boostsHandler.IncreaseItemSpawnRate();
+                break;
         }
 
         // Hide UI
         rewardsUI.SetActive(false);
-        Time.timeScale = 1f;
+        Time.timeScale = gameManager.gameSpeed;
         BGM.UnPause();
         Cursor.lockState = CursorLockMode.Locked;
         collectedisplay.mult += 0.1f;
 
+        if (boostsHandler.ifRandomPowerUpEachRound)
+        {
+            boostsHandler.GetRandomPowerUp();
+            //Debug.Log("Signal sent");
+        }
+
+        musicManager.PlaySong(0);
+
         collectedisplay.UpdateDisplay();
     }
-    
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space)) GenerateRewards();
-    }
-
 }
