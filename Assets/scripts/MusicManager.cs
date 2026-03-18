@@ -4,20 +4,50 @@ using System.Collections;
 public class MusicManager : MonoBehaviour
 {
     public AudioSource backgroundSource;
+    public BaldiEnemy baldiEnemy;
+    public collectedisplay collectedisplay;
     public AudioClip[] songs; // assign all your songs here
+    public bool isEnragedMusicOn = false;
     void Start()
     {
-        if (songs.Length > 0)
-            PlaySong(0); // start with the first song
+        UpdateBackgroundMusic();
     }
 
-    public void PlaySong(int index)
+    public void UpdateBackgroundMusic()
     {
-        if (index < 0 || index >= songs.Length) return;
+        int dif = 0;
+        if (SettingsData.Difficulty == 3)
+            dif = 4;
 
-        backgroundSource.Stop();
-        backgroundSource.clip = songs[index];
-        backgroundSource.Play();
+        // for rage mode music 
+        if (baldiEnemy.isEnraged)
+        {
+            if (isEnragedMusicOn) return;
+
+            PlaySong(3 +dif);
+            isEnragedMusicOn = true;
+            return;
+        }
+
+        // for round start music 
+        if (collectedisplay.collected == 0)
+        {
+            PlaySong(dif);
+        }
+
+        // for 3 items
+        if (collectedisplay.collected == 3)
+        {
+            PlaySong(1 + dif);
+        }
+
+        // for 5 items
+        if (collectedisplay.collected == 5)
+        {
+            PlaySong(2 + dif);
+        }
+
+        return;
     }
 
     public IEnumerator PuaseBGMForCollectionText()
@@ -31,5 +61,12 @@ public class MusicManager : MonoBehaviour
     public void StartPuaseBGMForCollectionText()
     {
         StartCoroutine(PuaseBGMForCollectionText());
+    }
+
+    public void PlaySong( int index)
+    {
+        backgroundSource.Stop();
+        backgroundSource.clip = songs[index];
+        backgroundSource.Play();
     }
 }

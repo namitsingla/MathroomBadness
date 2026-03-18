@@ -14,6 +14,7 @@ public class Collectible : MonoBehaviour
    GameObject baldi;
    BaldiEnemy baldiEnemy;
    ExitDoor exitDoor;
+   private bool hasBeenCollected = false;
     void Awake()
     {
         collecteddisplay = ReferencesManager.instance.collecteddisplay;
@@ -35,7 +36,14 @@ public class Collectible : MonoBehaviour
 
     void OnTriggerEnter(Collider other )
     {
-        if (!other.GetComponent<Collider>().CompareTag("Player")) return;
+        if (!other.CompareTag("Player")) return;
+
+        // If it's already been collected this frame, do nothing.
+        if (hasBeenCollected) return;
+        
+        // Lock the gate immediately
+        hasBeenCollected = true;
+
 
         //spawn next item
         if (spawnManager.spawnedCount < 1000)
@@ -72,15 +80,7 @@ public class Collectible : MonoBehaviour
             // sincrease baldi's speed
             baldi.GetComponent<NavMeshAgent>().speed = baldiEnemy.baldiBaseSpeed + baldiEnemy.speedIncrease*collecteddisplay.collected;
 
-            // Change background music
-            if (collecteddisplay.collected == 3)
-            {
-                musicManager.PlaySong(1); // play song 2 after 3 items
-            }
-            else if (collecteddisplay.collected == 5)
-            {
-                musicManager.PlaySong(2); // play song 3 after 5 items
-            }     
+            musicManager.UpdateBackgroundMusic();  
     }
 
 }

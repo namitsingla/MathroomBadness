@@ -53,16 +53,6 @@ public class collectiblechalk : MonoBehaviour
 
         Destroy(gameObject);
                 
-                // Change background music
-        if (collecteddisplay.collected == 3)
-            {
-                musicManager.PlaySong(1); // play song 2 after 3 items
-            }
-            else if (collecteddisplay.collected == 6)
-            {
-                musicManager.PlaySong(2); // play song 3 after 6 items
-            }   
-                
     }
 
     public void WarningNumber ()

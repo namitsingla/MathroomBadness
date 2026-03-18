@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using UnityEngine.UI;
+using TMPro;
 
 public enum CatchType
     {
@@ -12,6 +13,7 @@ public enum CatchType
 public class GameManager : MonoBehaviour
 {
     public int lives = 3;
+    public int round = 1;
 
     public GameObject player;
     public player_controller movement;
@@ -36,11 +38,24 @@ public class GameManager : MonoBehaviour
     public PowerSystem powerSystem;
     public float gameSpeed = 1f;
     public UIIAController uIIAController;
+
+    public bool hasGameEnded = false;
+    public GameObject endScreeen;
+    public TextMeshProUGUI endScore;
+    public collectedisplay collectedisplay;
+    public AudioSource uiiacatmusic;
+    public AudioSource gameOverSound;
+    public bool hasCheated = false;
+    public MusicManager musicManager;
+    public GameObject baldiWarningcanvas;
     public void KhelKhatam(Transform lookTarget, CatchType type)
     {
         if (powerSystem.isPowerDotOn) return;
 
         if (isDead) return;
+
+        if (powerSystem.isPrisonRealmActive) 
+            powerSystem.EnemyCaughtInPrison(type); 
 
             lives -= 1;
             isDead = true;
@@ -76,8 +91,8 @@ public class GameManager : MonoBehaviour
         dialogueSoundManager.PlayBaldiDeathScreenSound();
 
         //to randomize position of image
-        float x = Random.Range(-150f, 250f);
-        float y = Random.Range(-500f, -600f);
+        float x = Random.Range(-350f, 600f);
+        float y = Random.Range(-1000f, -1300f);
 
         baldiJumpscarePosiiton.anchoredPosition = new Vector2(x, y);
         baldiJumpscare.enabled = true;
@@ -134,7 +149,19 @@ public class GameManager : MonoBehaviour
             baldiJumpscare.enabled = false;
             movement.enabled = true;
             isDead = false;
-            baldi.SetActive(true);
+
+            //to only activate it if not in prison
+            bool releaseBaldi = true;
+            foreach (PrisonData list in powerSystem.imprisonedEnemies)
+            {
+                if (list.Enemy == baldi) 
+                    releaseBaldi = false;
+            }
+            if (releaseBaldi)
+                baldi.SetActive(true);
+            else 
+                Debug.Log("Baldi is stil in priosn");
+            
             BGM.UnPause();
 
             //baldi.GetComponent<UnityEngine.AI.NavMeshAgent>().SetDestination(baldispawn);
@@ -152,11 +179,36 @@ public class GameManager : MonoBehaviour
             player.GetComponent<CharacterController>().enabled = false;
             player.transform.position = playerspawn;
             player.GetComponent<CharacterController>().enabled = true;
+
+            baldiWarningcanvas.SetActive(false);
+
+            StartCoroutine(powerSystem.StunAllEnemies());
         }
         else
         {
-            Cursor.lockState = CursorLockMode.None; // Unlocks the cursor for menus
+            hasGameEnded = true;
+            Time.timeScale = 0f;
+            uiiacatmusic.Stop();
+            endScreeen.SetActive(true);
+
+            if (!hasCheated)
+                endScore.text = "CLASS OVER\nSCORE: " + collectedisplay.score.ToString();
+            else 
+                endScore.text = "CHEATS HAVE\nBEEN USED";
+
+            gameOverSound.Play();
+            musicManager.PlaySong(8);
+
+        }
+    }
+
+    void Update()
+    {
+        if (!hasGameEnded) return;
+        if (Input.anyKeyDown)
+        {
             Time.timeScale = 1f;
+            Cursor.lockState = CursorLockMode.None; // Unlocks the cursor for menus
             SceneManager.LoadScene(0);
         }
     }

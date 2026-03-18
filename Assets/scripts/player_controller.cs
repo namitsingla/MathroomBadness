@@ -1,51 +1,116 @@
+// using UnityEngine;
+// using UnityEngine.AI;
+
+// [RequireComponent(typeof(CharacterController))]
+// public class player_controller : MonoBehaviour
+// {
+//     [Header("Movement")]
+//     public float moveSpeed = 11f;
+
+//     [Header("Mouse")]
+//     public float mouseSensitivity = 300f;
+//     public Transform cameraTransform;
+
+//     [Header("Look Back")]
+//     public float lookBackAngle = 180f;
+
+//     private CharacterController controller;
+//     private float xRotation = 0f;
+
+//     void Start() 
+//     { 
+//         controller = GetComponent<CharacterController>(); 
+//         Cursor.lockState = CursorLockMode.Locked; 
+//     } 
+//     void Update()
+//     {
+//         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * SettingsData.CameraSensitivity * Time.deltaTime * 5; 
+//         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * SettingsData.CameraSensitivity * Time.deltaTime; 
+//         xRotation -= mouseY; 
+//         xRotation = Mathf.Clamp(xRotation, -90f, 90f); 
+//         //limits how much u can rotate vertically 
+        
+//         cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f); 
+//         transform.Rotate(Vector3.up * mouseX); 
+
+//         float moveX = Input.GetAxis("Horizontal"); 
+//         float moveZ = Input.GetAxis("Vertical"); 
+//         Vector3 move = transform.right * moveX + transform.forward * moveZ; 
+//         controller.Move(move * moveSpeed * Time.deltaTime * 2);
+
+//         NavMeshHit hit; 
+//         if (NavMesh.SamplePosition(transform.position, out hit, 1.0f, NavMesh.AllAreas)) 
+//         { 
+//             transform.position = hit.position; 
+//         } 
+            
+//             //for looking back 
+//             if (Input.GetKey(KeyCode.Space)) 
+//             { 
+//                 cameraTransform.Rotate(0, lookBackAngle, 0); 
+//             } 
+//         } 
+//     }
+
+
 using UnityEngine;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(CharacterController))]
 public class player_controller : MonoBehaviour
 {
+    [Header("Movement")]
     public float moveSpeed = 11f;
+
+    [Header("Mouse")]
     public float mouseSensitivity = 300f;
     public Transform cameraTransform;
+
+    [Header("Look Back")]
+    public float lookBackAngle = 180f;
 
     private CharacterController controller;
     private float xRotation = 0f;
 
-    public float lookBackAngle = 180f;
-
-    void Start()
-    {
-        controller = GetComponent<CharacterController>();
-        Cursor.lockState = CursorLockMode.Locked;
-    }
-
+    void Start() 
+    { 
+        controller = GetComponent<CharacterController>(); 
+        Cursor.lockState = CursorLockMode.Locked; 
+    } 
+    
     void Update()
     {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * SettingsData.CameraSensitivity * Time.deltaTime * 5;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * SettingsData.CameraSensitivity * Time.deltaTime;
+        // --- MOUSE (UNTOUCHED) ---
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * SettingsData.CameraSensitivity * Time.deltaTime * 5; 
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * SettingsData.CameraSensitivity * Time.deltaTime; 
+        xRotation -= mouseY; 
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f); 
+        //limits how much u can rotate vertically 
+        
+        cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f); 
+        transform.Rotate(Vector3.up * mouseX); 
 
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f); //limits how much u can rotate vertically
-        cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
-        transform.Rotate(Vector3.up * mouseX);
-
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
-
-        Vector3 move = transform.right * moveX + transform.forward * moveZ;
+        // --- MOVEMENT (UNTOUCHED BESIDES GetAxisRaw) ---
+        float moveX = Input.GetAxisRaw("Horizontal"); 
+        float moveZ = Input.GetAxisRaw("Vertical"); 
+        
+        Vector3 move = transform.right * moveX + transform.forward * moveZ; 
         controller.Move(move * moveSpeed * Time.deltaTime * 2);
 
-        NavMeshHit hit;
-        if (NavMesh.SamplePosition(transform.position, out hit, 1.0f, NavMesh.AllAreas))
-        {
-            transform.position = hit.position;
-        }
-
-        //for looking back
-        if (Input.GetKey(KeyCode.Space))
-        {
-            cameraTransform.Rotate(0, lookBackAngle, 0);
-        }
-    }
+        // --- NAVMESH SNAPPING ---
+        NavMeshHit hit; 
+        if (NavMesh.SamplePosition(transform.position, out hit, 2.0f, NavMesh.AllAreas)) 
+        { 
+            // We only override the Y axis to stay glued to the floor.
+            // Adding controller.skinWidth ensures the collider doesn't embed into the floor,
+            // completely stopping the physics engine from fighting your speed during lag!
+            transform.position = new Vector3(transform.position.x, hit.position.y + controller.skinWidth, transform.position.z);
+        } 
+            
+        // --- LOOK BACK (UNTOUCHED) ---
+        if (Input.GetKey(KeyCode.Space)) 
+        { 
+            cameraTransform.Rotate(0, lookBackAngle, 0); 
+        } 
+    } 
 }

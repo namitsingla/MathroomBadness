@@ -3,10 +3,14 @@ using UnityEngine;
 public class ScoreCalculator : MonoBehaviour
 {
     public collectedisplay collectedisplay;
+    public ScoreCounter scoreCounter;
 
     public void CalculateScore()
     {
-        collectedisplay.score += (int) (collectedisplay.collected *10000 *collectedisplay.mult/collectedisplay.timer);
+        int scorewithoutMult = (int) (collectedisplay.collected *10000/collectedisplay.timer);
+        scoreCounter.AnimateScore(scorewithoutMult, collectedisplay.mult);
+
+        collectedisplay.score += Mathf.RoundToInt(scorewithoutMult * collectedisplay.mult);
 
         collectedisplay.collected = 0;
         collectedisplay.chalk = 0;

@@ -5,24 +5,85 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering;
 
 [System.Serializable]
 public class Power
 {
     public Func<IEnumerator> Effect;
     public Action onEquip;
+    public float rechargeTime = 0f;
+    public bool isReusable = false;
 
     public void AssignPower(Power other)
     {
         Effect = other.Effect;
         other.onEquip();
+        rechargeTime = other.rechargeTime;
+        isReusable = other.isReusable;
+    }
+}
+
+public class PrisonData
+{
+    public GameObject Enemy;
+    public int ReleaseRound;
+
+    public PrisonData(GameObject enemy, int round)
+    {
+        Enemy = enemy;
+        ReleaseRound = round;
     }
 }
 
 public class PowerSystem : MonoBehaviour
 {
+    [Header("Powers")]
     public Power currentPower;
+    public Power deEquipPower;
+    public Power invincibilityShield;
+    public Power teleporter;
+    public Power stunner;
+    public Power powerDot;
+    public Power wallBreaker;
+    public Power prisonRealm;
+
+
+    [Header("Sprites")]
     public Image currentPowerIcon;
+    public Sprite invincibilityShieldIcon;
+    public Sprite teleporterIcon;
+    public Sprite stunnerIcon;
+    public Sprite powerDotSprite;
+    public Sprite wallBreakerSprite;
+    public Sprite prisonRealmSprite;
+
+
+    [Header("Sound Effects")]
+    public AudioSource powerDotAudio;
+    public AudioSource invincibilityShieldAudio;
+    public AudioSource teleporterAudio;
+    public AudioSource stunnerAudio;
+    public AudioSource prisonRealmHeartbeat;
+    public AudioSource prisonRealmCapturedSound;
+
+
+    [Header("Power Specific Refrences")]
+    public GameObject invincibilityShieldOverlay;
+    public Shader pacManModeShader;
+    public Shader prisonRealmShader;
+    public GameObject priosnRealmCaughtImage;
+
+
+    [Header("Variables")]
+    public bool isPowerDotOn = false;
+    private float currentCooldown = 0f;
+    private bool isRecharging = false;
+    public bool isPrisonRealmActive = false;
+    public List<PrisonData> imprisonedEnemies = new List<PrisonData>();
+
+
+    [Header("References")]
     public GameManager gameManager;
     public UniversalRendererData rendererData;
     public SpawnManager spawnManager; 
@@ -34,27 +95,15 @@ public class PowerSystem : MonoBehaviour
     public AudioSource uiiaCatAudio;
     public AudioSource BGM;
     public UIIAController uIIAController;
-
-
-    public Power deEquipPower;
-
-    public Power invincibilityShield;
-    public Sprite invincibilityShieldIcon;
-    public GameObject invincibilityShieldOverlay;
-    public Power teleporter;
-    public Sprite teleporterIcon;
-    public Power stunner;
-    public Sprite stunnerIcon;
-    public Power powerDot;
-    public Sprite powerDotSprite;
-    public AudioSource powerDotAudio;
-    public bool isPowerDotOn = false;
-    public Power wallBreaker;
-    public Sprite wallBreakerSprite;
-
     public Material[] mapMaterials;
-    public Shader pacManModeShader;
     Shader urpLit;
+    public RenderPipelineAsset URP_Low;
+    public Image rechargeCircle;
+    public GameObject baldi;
+    public GameObject oggy;
+    public GameObject uiiaCat;
+
+
     void Awake()
     {
         currentPower = new Power();
@@ -74,6 +123,8 @@ public class PowerSystem : MonoBehaviour
         stunner = new Power();
         stunner.Effect = StunnerEffect;
         stunner.onEquip = StunnerOnEquip;
+        stunner.isReusable = true;
+        stunner.rechargeTime = 30f;
 
         powerDot = new Power();
         powerDot.Effect =  PowerDotEffect;
@@ -86,7 +137,14 @@ public class PowerSystem : MonoBehaviour
         wallBreaker.Effect = WallBreakerEffect;
         wallBreaker.onEquip = WallBreakerOnEQuip;
 
+        prisonRealm = new Power();
+        prisonRealm.Effect = PrisonRealmEffect;
+        prisonRealm.onEquip = PrisonRealmOnEquip;
+        //prisonRealm.isReusable = true;
+        
+
         currentPower.AssignPower(powerDot);
+        ChangeMapShader(urpLit);
     }
 
     IEnumerator DeEquipPowerEffect()
@@ -103,14 +161,26 @@ public class PowerSystem : MonoBehaviour
     IEnumerator InvincibilityShieldEffect()
     {
         gameManager.isDead = true;
-        SetFullScreenPass(true);
-        invincibilityShieldOverlay.SetActive(true);
+        invincibilityShieldAudio.Play();
+
+        if (GraphicsSettings.currentRenderPipeline != URP_Low)
+        {
+            SetFullScreenPass(true);
+            invincibilityShieldOverlay.SetActive(true);
+        }
+
         Debug.Log("Invincibility activated");
 
-        yield return new WaitForSeconds(7f);
+        yield return new WaitForSeconds(14f);
         gameManager.isDead = false;
-        SetFullScreenPass(false);
-        invincibilityShieldOverlay.SetActive(false);
+        invincibilityShieldAudio.Stop();
+
+        if (GraphicsSettings.currentRenderPipeline != URP_Low)
+        {
+            SetFullScreenPass(false);
+            invincibilityShieldOverlay.SetActive(false);            
+        }
+        
         Debug.Log("Invincibility ended");
     }
 
@@ -135,6 +205,7 @@ public class PowerSystem : MonoBehaviour
     IEnumerator TeleporterEffect()
     {
         spawnManager.TeleportPlayerAway();
+        teleporterAudio.Play();
         yield return null;
     }
 
@@ -146,6 +217,17 @@ public class PowerSystem : MonoBehaviour
 
     IEnumerator StunnerEffect()
     {
+        StartCoroutine(StunAllEnemies());
+        stunnerAudio.Play();
+
+        isRecharging = true;
+        currentPowerIcon.enabled = false;
+
+        yield return null;
+    }
+
+    public IEnumerator StunAllEnemies()
+    {
         float baldiSpeed = baldiNavMesh.speed;
         baldiNavMesh.speed = 0f;
         float uiiaSpeed = uiiaNavMesh.speed;
@@ -156,7 +238,6 @@ public class PowerSystem : MonoBehaviour
         baldiNavMesh.speed = baldiSpeed;
         enemyController.isStunned = false;
         uiiaNavMesh.speed = uiiaSpeed;
-
     }
 
     public void StunnerOnEquip()
@@ -173,15 +254,14 @@ public class PowerSystem : MonoBehaviour
         powerDotAudio.Play();
         uiiaCatAudio.Pause();
         BGM.Pause();
-        foreach (var mat in mapMaterials)
-            mat.shader = pacManModeShader;
+        ChangeMapShader(pacManModeShader);
 
 
-        yield return new WaitForSeconds(7f);
+        yield return new WaitForSeconds(5f);
 
          Shader.SetGlobalFloat("_FrightenedFlash", 1f);
 
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
 
          isPowerDotOn = false;
          Shader.SetGlobalFloat("_FrightenedAmount", 0f);
@@ -189,8 +269,7 @@ public class PowerSystem : MonoBehaviour
          powerDotAudio.Stop();
          uiiaCatAudio.UnPause();
          BGM.UnPause();
-         for (int i = 0; i < mapMaterials.Length; i++)
-            mapMaterials[i].shader = urpLit;
+         ChangeMapShader(urpLit);
 
     }
 
@@ -205,11 +284,17 @@ public class PowerSystem : MonoBehaviour
         Time.timeScale = 0f;
         powerDotAudio.Pause();
 
-        yield return new WaitForSecondsRealtime(1f);
+        yield return new WaitForSecondsRealtime(0.5f);
 
         spawnManager.SpawnEnemy(enemy);
         Time.timeScale = gameManager.gameSpeed;
         powerDotAudio.UnPause();
+    }
+
+    public void ChangeMapShader(Shader shader)
+    {
+        foreach (var mat in mapMaterials)
+            mat.shader = shader;
     }
 
     IEnumerator WallBreakerEffect()
@@ -224,15 +309,147 @@ public class PowerSystem : MonoBehaviour
         currentPowerIcon.sprite = wallBreakerSprite;
     }
 
+    IEnumerator PrisonRealmEffect()
+    {
+        isPrisonRealmActive = true;
+        ChangeMapShader(prisonRealmShader);
+        BGM.Pause();
+        prisonRealmHeartbeat.Play();
+        Debug.Log("Prison Realm Activated");
+
+        yield return new WaitForSeconds(10f);
+
+        EndPrisonRealmEffect();
+    }
+
+    void EndPrisonRealmEffect()
+    {
+        isPrisonRealmActive = false;
+        ChangeMapShader(urpLit);
+        BGM.UnPause();
+        prisonRealmHeartbeat.Stop();
+        Debug.Log("Prison Realm Deactivated");
+    }
+
+    public void PrisonRealmOnEquip()
+    {
+        currentPowerIcon.enabled = true;
+        currentPowerIcon.sprite = prisonRealmSprite;
+    }
+
+    public void EnemyCaughtInPrison(CatchType type) 
+    {
+        GameObject capturedEnemy = null;
+        Debug.Log("Enemy Caught");
+
+        if (type == CatchType.baldi)
+            {
+                capturedEnemy = baldi;
+                baldiEnemy.baldiBaseSpeed *= 2f;
+                Debug.Log("Baldi");
+            }
+        else if (type == CatchType.uiiacat)
+            {
+                capturedEnemy = uiiaCat;
+                uiiaNavMesh.speed *= 2f;
+                Debug.Log("UIIA");
+            }
+        else if (type == CatchType.oggy)
+            {
+                capturedEnemy = oggy;
+                enemyController.oggyBAseSpeed *= 2f;
+                Debug.Log("Oggy");
+            }
+
+        if (capturedEnemy != null) 
+        {
+            capturedEnemy.SetActive(false);
+
+            int releasingRound = gameManager.round + 3;
+            Debug.Log(capturedEnemy.name + " imprisoned. Releasing Round is " + releasingRound);
+            imprisonedEnemies.Add(new PrisonData(capturedEnemy, releasingRound));
+
+            StartCoroutine(ShowPrisonRealmCaughtImage());
+        }
+    }
+
+    IEnumerator ShowPrisonRealmCaughtImage()
+    {
+        prisonRealmCapturedSound.Play();
+        AnimationCurve popCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+        priosnRealmCaughtImage.SetActive(true);
+        Vector3 originalScale = priosnRealmCaughtImage.transform.localScale;
+
+        priosnRealmCaughtImage.transform.localScale = Vector3.zero;
+
+        float timeElapsed = 0f;
+
+        while (timeElapsed < 0.7f)
+        {
+            timeElapsed += Time.deltaTime;
+            
+            // Evaluate the curve and apply the multiplier to the scale
+            float curveValue = popCurve.Evaluate(timeElapsed / 0.25f);
+            priosnRealmCaughtImage.transform.localScale = originalScale * curveValue;
+            
+            yield return null; 
+        }
+
+        // Snap to the exact original scale when finished
+        priosnRealmCaughtImage.transform.localScale = originalScale;
+
+        yield return new WaitForSeconds(2.0f);
+        priosnRealmCaughtImage.SetActive(false);
+        EndPrisonRealmEffect();
+    }
+
     void Update()
     {
+        if (isRecharging)
+        {
+            // Increase timer based on real time
+            currentCooldown += Time.deltaTime;
+
+            // Calculate fill amount (0.0 to 1.0)
+            rechargeCircle.fillAmount = 1 - currentCooldown / currentPower.rechargeTime;
+
+            if (currentCooldown >= currentPower.rechargeTime)
+            {
+                currentCooldown = 0f;
+                isRecharging = false;
+                currentPowerIcon.enabled = true;
+                Debug.Log("Recharge Complete!");
+            }
+        }
+
        if ((Input.GetKeyDown(KeyCode.Q) || Input.GetMouseButtonDown(1)) && currentPower != null)
         {
             // so cant be activated when already dead
             if (gameManager.isDead) return;
 
+            if (isRecharging) return;
             StartCoroutine(currentPower.Effect());
+
+            if (!currentPower.isReusable)
             currentPower.AssignPower(deEquipPower);
         } 
+
+        // Loop BACKWARDS so we can safely remove enemies as they are released
+        for (int i = imprisonedEnemies.Count - 1; i >= 0; i--)
+        {
+            PrisonData prisoner = imprisonedEnemies[i];
+
+            // Check if the current round has reached or passed their release round
+            if (gameManager.round >= prisoner.ReleaseRound)
+            {
+                // Set them free!
+                prisoner.Enemy.SetActive(true);
+                Debug.Log(prisoner.Enemy.name + " Released Successfully");
+
+                // Remove them from the prison list so we don't keep trying to release them
+                imprisonedEnemies.RemoveAt(i);
+            }
+        }
     }
 }

@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
+using System.Collections;
 
 public class ExitDoor : MonoBehaviour
 {
@@ -21,25 +23,44 @@ public class ExitDoor : MonoBehaviour
     public ExitDoorSpawner exitDoorSpawner;
     public RarityManager rarityManager;
     public UIIAController uIIAController;
+    public AudioSource exitDoorFailSound;
+    public GameObject exitDoorFailText;
+    public GameObject baldiWarningcanvas;
+    
+    private bool isProcessing = false;
+    
     void Awake()
     {
-        //targetRenderer = ReferencesManager.instance.targetRenderer;
-        //lockedIcon = ReferencesManager.instance.lockedIcon;
         mpb = new MaterialPropertyBlock();
     }
-
+    
     void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player")) return;
+        if (isProcessing) return;
 
         if (collectedisplay.collected < 3)
         {
-            Debug.Log("You must collect atleast 3 items to open the exit.");
+            isProcessing = true; // Lock the trigger
+            exitDoorFailSound.Play();
+            StartCoroutine(ExitDoorFAilText());
         } 
         else
         {
+            isProcessing = true; // Lock the trigger
             RoundEndSequence();
         }
+    }
+
+    IEnumerator ExitDoorFAilText()
+    {
+        exitDoorFailText.SetActive(true);
+
+        // Since timeScale might be 0 later, it's safer to use real time for UI delays just in case
+        yield return new WaitForSecondsRealtime(3f); 
+        
+        exitDoorFailText.SetActive(false);
+        isProcessing = false;
     }
 
     public void ActivateExitDoor()
@@ -58,10 +79,13 @@ public class ExitDoor : MonoBehaviour
         targetRenderer.SetPropertyBlock(mpb);
 
         lockedIcon.SetActive(true);
+        // THE FIX: We removed 'isProcessing = false;' from here so it doesn't unlock instantly!
     }
 
     public void RoundEndSequence()
     {
+        baldiWarningcanvas.SetActive(false);
+
         Time.timeScale = 0f;
         BGM.Pause();
 
@@ -87,10 +111,19 @@ public class ExitDoor : MonoBehaviour
 
         uIIAController.DeactivateAllWalls();
         
-        DeactivateExitDoor();
         exitDoorSpawner.SpawnExitDoor();
+        DeactivateExitDoor();
 
         rewardsUI.SetActive(true);
-        rarityManager.GenerateRewards();
+
+        // THE FIX: Start a coroutine to unlock the door safely after physics is done
+        StartCoroutine(UnlockDoorSafely());
+    }
+
+    // THE FIX: This coroutine waits 0.1 real-time seconds before unlocking the trigger
+    IEnumerator UnlockDoorSafely()
+    {
+        yield return new WaitForSecondsRealtime(0.1f);
+        isProcessing = false;
     }
 }

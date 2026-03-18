@@ -28,9 +28,7 @@ public class BoostsHandler : MonoBehaviour
     {
         powerUps.Add(InvincibilityShield);
         powerUps.Add(Teleporter);
-        powerUps.Add(Stunner);
         powerUps.Add(PowerDot);
-        powerUps.Add(WallBreaker);
     }
     public void SpeedIncrease()
     {
@@ -56,10 +54,10 @@ public class BoostsHandler : MonoBehaviour
 
     public void SlowDownEnemies()
     {
-        baldiEnemy.baldiBaseSpeed *= 0.85f;
+        baldiEnemy.baldiBaseSpeed *= 0.75f;
         baldiNavMesh.speed = baldiEnemy.baldiBaseSpeed;
-        uiiaNavMesh.speed *= 0.85f;
-        enemyController.oggyBAseSpeed *= 0.85f;
+        uiiaNavMesh.speed *= 0.75f;
+        enemyController.oggyBAseSpeed *= 0.75f;
         oggyNavMesh.speed = enemyController.oggyBAseSpeed;
     }
 
@@ -141,12 +139,17 @@ public class BoostsHandler : MonoBehaviour
 
     public void TimeSpeedUp()
     {
-        gameManager.gameSpeed *= 2f;
+        gameManager.gameSpeed *= 1.25f;
         collectedisplay.mult += 1.4f;
     }
 
     public void IncreaseItemSpawnRate()
     {
         spawnManager.spawnCount += 1;
+    }
+
+    public void PrisonRealm()
+    {
+        powerSystem.currentPower.AssignPower(powerSystem.prisonRealm);
     }
 }

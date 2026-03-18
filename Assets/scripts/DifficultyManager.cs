@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 public class DifficultyManager : MonoBehaviour
 {
@@ -10,6 +12,15 @@ public class DifficultyManager : MonoBehaviour
     public UnityEngine.AI.NavMeshAgent uiiaNavMesh;
     public SpawnManager spawnManager;
     public GameManager gameManager;
+    public Volume globalVolume;
+    private SplitToning splitToning;
+    private Vignette vignette;
+
+    void Awake()
+    {
+        globalVolume.profile.TryGet(out splitToning);
+        globalVolume.profile.TryGet(out vignette);
+    }
     void Start()
     {
         //easy
@@ -32,7 +43,7 @@ public class DifficultyManager : MonoBehaviour
             spawnManager.minEnemyDistanceFromPlayer *= 1.25f;
             spawnManager.maxEnemyDistanceFromPlayer *= 1.25f;
 
-            RenderSettings.fogDensity = 0.02f;
+            RenderSettings.fogDensity = 0.025f;
         }
 
         //hard
@@ -54,7 +65,7 @@ public class DifficultyManager : MonoBehaviour
             spawnManager.minEnemyDistanceFromPlayer *= 0.67f;
             spawnManager.maxEnemyDistanceFromPlayer *= 0.9f;
 
-            RenderSettings.fogDensity = 0.05f;
+            RenderSettings.fogDensity = 0.055f;
         }
 
         //madness
@@ -78,6 +89,19 @@ public class DifficultyManager : MonoBehaviour
 
             RenderSettings.fogDensity = 0.06f;
             gameManager.lives = 1;
+
+            SetSplitToning(true);
         }
+    }
+
+    public void SetSplitToning(bool state)
+    {
+        if (splitToning == null)
+            return;
+
+        splitToning.active = state;
+
+        //increase vighnette
+        vignette.intensity.value = Mathf.Clamp01(0.25f);
     }
 }

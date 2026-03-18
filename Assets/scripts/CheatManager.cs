@@ -11,6 +11,7 @@ public class CheatManager : MonoBehaviour
     public player_controller player_Controller;
     public ExitDoor exitDoor;
     public RarityManager rarityManager;
+    public PowerSystem powerSystem;
 
     void Update()
     {
@@ -31,24 +32,35 @@ public class CheatManager : MonoBehaviour
             {
                 Walls();
                 inputBuffer = "";
+                gameManager.hasCheated = true;
             }
 
             if (inputBuffer.Contains("VIVIIKUN"))
             {
                 ViviiKun();
                 inputBuffer = "";
+                gameManager.hasCheated = true;
             }
 
             if (inputBuffer.Contains("PKPKPK"))
             {
                 PkPkPk();
                 inputBuffer = "";
+                gameManager.hasCheated = true;
             }
 
             if (inputBuffer.Contains("GOPALA"))
             {
                 ReRoll();
                 inputBuffer = "";
+                gameManager.hasCheated = true;
+            }
+
+            if (inputBuffer.Contains("KENJAKU"))
+            {
+                PrisonRealm();
+                inputBuffer = "";
+                gameManager.hasCheated = true;
             }
         }
 
@@ -60,8 +72,8 @@ public class CheatManager : MonoBehaviour
     {
         Debug.Log("ITS GANGNAM TIME");
         
-        musicManager.PlaySong(3);
-        musicManager.backgroundSource.volume = 1.0f;
+        musicManager.PlaySong(9);
+        //musicManager.backgroundSource.volume = 1.0f;
     }
 
     void Walls()
@@ -92,6 +104,11 @@ public class CheatManager : MonoBehaviour
 
     void ReRoll()
     {
-        rarityManager.GenerateRewards();
+        rarityManager.StartCoroutine(rarityManager.GenerateRewards());
+    }
+
+    void PrisonRealm()
+    {
+        powerSystem.currentPower.AssignPower(powerSystem.prisonRealm);
     }
 }

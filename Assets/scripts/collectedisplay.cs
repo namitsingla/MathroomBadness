@@ -17,7 +17,7 @@ public class collectedisplay : MonoBehaviour
     public void UpdateDisplay()
     {
         collectedtext.text = "Collected: " + collected;
-        scoretext.text = "Score: " + score;
+        //scoretext.text = "Score: " + score;
         multtext.text = "Multiplier: " + mult.ToString("F2") + "X";
     }
 
