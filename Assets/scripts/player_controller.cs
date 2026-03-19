@@ -61,6 +61,7 @@ public class player_controller : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 11f;
+    public float diagonalBoostMultiplier = 1f;
 
     [Header("Mouse")]
     public float mouseSensitivity = 300f;
@@ -91,11 +92,24 @@ public class player_controller : MonoBehaviour
         transform.Rotate(Vector3.up * mouseX); 
 
         // --- MOVEMENT (UNTOUCHED BESIDES GetAxisRaw) ---
-        float moveX = Input.GetAxisRaw("Horizontal"); 
-        float moveZ = Input.GetAxisRaw("Vertical"); 
-        
-        Vector3 move = transform.right * moveX + transform.forward * moveZ; 
-        controller.Move(move * moveSpeed * Time.deltaTime * 2);
+        // 1. Get raw input (-1, 0, or 1)
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float vertical = Input.GetAxisRaw("Vertical");
+
+        // 2. Calculate direction and normalize it to establish a consistent base speed
+        Vector3 move = (transform.right * horizontal + transform.forward * vertical).normalized; 
+
+        // 3. Determine current speed
+        float currentSpeed = moveSpeed;
+
+        // 4. Check if moving diagonally (both axes have non-zero input)
+        if (horizontal != 0 && vertical != 0)
+        {
+            currentSpeed *= diagonalBoostMultiplier;
+        }
+
+
+        controller.Move(move * currentSpeed * Time.deltaTime * 2);
 
         // --- NAVMESH SNAPPING ---
         NavMeshHit hit; 

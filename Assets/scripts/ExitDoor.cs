@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using System.Collections;
+using TMPro;
 
 public class ExitDoor : MonoBehaviour
 {
@@ -26,12 +27,16 @@ public class ExitDoor : MonoBehaviour
     public AudioSource exitDoorFailSound;
     public GameObject exitDoorFailText;
     public GameObject baldiWarningcanvas;
+    public int requiredItems = 3;
     
     private bool isProcessing = false;
+    TextMeshProUGUI exitDoorFailTMP;
     
     void Awake()
     {
         mpb = new MaterialPropertyBlock();
+
+        exitDoorFailTMP = exitDoorFailText.GetComponent<TextMeshProUGUI>();
     }
     
     void OnTriggerEnter(Collider other)
@@ -39,7 +44,7 @@ public class ExitDoor : MonoBehaviour
         if (!other.CompareTag("Player")) return;
         if (isProcessing) return;
 
-        if (collectedisplay.collected < 3)
+        if (collectedisplay.collected < requiredItems)
         {
             isProcessing = true; // Lock the trigger
             exitDoorFailSound.Play();
@@ -54,6 +59,15 @@ public class ExitDoor : MonoBehaviour
 
     IEnumerator ExitDoorFAilText()
     {
+        if (collectedisplay.collected == 0)
+        {
+            exitDoorFailTMP.text = "You need atleast " + requiredItems + " items";
+        } else
+        {
+            exitDoorFailTMP.text = "You need atleast " + (requiredItems-collectedisplay.collected) + " more items";
+        }
+
+
         exitDoorFailText.SetActive(true);
 
         // Since timeScale might be 0 later, it's safer to use real time for UI delays just in case

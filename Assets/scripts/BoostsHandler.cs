@@ -20,6 +20,11 @@ public class BoostsHandler : MonoBehaviour
     public bool ifRandomPowerUpEachRound = false;
     public GameObject MiniMapUI;
     public SpawnManager spawnManager;
+    public RarityManager rarityManager;
+    int playerLayer;
+    int uiiaWallsLayer;
+    public bool isMitosisOn = false;
+    public ExitDoor exitDoor;
 
 
     List<Action> powerUps = new List<Action>();
@@ -29,6 +34,15 @@ public class BoostsHandler : MonoBehaviour
         powerUps.Add(InvincibilityShield);
         powerUps.Add(Teleporter);
         powerUps.Add(PowerDot);
+
+        playerLayer = LayerMask.NameToLayer("Player");
+        uiiaWallsLayer = LayerMask.NameToLayer("UIIA Walls");
+
+        //to turn off schrodingerscat when new game starts
+        PassThroughWalls(false);
+
+        //to turn off aura farming when new game starts
+        Shader.SetGlobalFloat("_GlobalXrayToggle", 0f); 
     }
     public void SpeedIncrease()
     {
@@ -151,5 +165,67 @@ public class BoostsHandler : MonoBehaviour
     public void PrisonRealm()
     {
         powerSystem.currentPower.AssignPower(powerSystem.prisonRealm);
+    }
+
+    public void TheFourthWall()
+    {
+        rarityManager.rewardCount += 1;
+
+        for (int i = 0; i < 3; i++)
+        {
+            rarityManager.rewardButtons[i].GetComponent<RectTransform>().anchoredPosition += new Vector2( -80f ,0f);
+        }
+
+        rarityManager.rewardButtons[3].gameObject.SetActive(true);
+    }
+
+    public void CornerCutter()
+    {
+        player_Controller.diagonalBoostMultiplier *= 1.5f;
+    }
+
+    public void SchrodingersCat()
+    {
+        PassThroughWalls(true);
+    }
+
+    public void PassThroughWalls(bool state)
+    {
+        Physics.IgnoreLayerCollision(playerLayer, uiiaWallsLayer, state);
+    }
+
+    public void Mitosis()
+    {
+        isMitosisOn = true;
+    }
+
+    public void HighStakes()
+    {
+        exitDoor.requiredItems *= 2;;
+        collectedisplay.mult += 2f;
+    }
+
+    public void AuraFarming()
+    {
+        Shader.SetGlobalFloat("_GlobalXrayToggle", 1f);
+    }
+
+    public void TunnelVision()
+    {
+        rarityManager.rewardCount = 1;
+
+        for (int i = 1; i < 4; i++)
+        {
+            rarityManager.rewardButtons[i].gameObject.SetActive(false);
+        }
+
+        rarityManager.rewardButtons[0].GetComponent<RectTransform>().anchoredPosition = new Vector2( 0f ,0f);
+
+        rarityManager.IncreaseLuckBy(8);
+    }
+
+    public void LoadedDice()
+    {
+        rarityManager.IncreaseLuckBy(1);
     }
 }

@@ -379,7 +379,7 @@ public class BaldiWarningHide : MonoBehaviour
     {
         if (item.CompareTag("Homework"))
         {
-            if (collecteddisplay.homework == 4 && !baldiScript.isEnraged)
+            if (collecteddisplay.homework >= 4 && !baldiScript.isEnraged)
             {
                 messageText.text = "*strikes*";
                 messageText.fontSize = 120;
@@ -399,7 +399,7 @@ public class BaldiWarningHide : MonoBehaviour
         }
         else if (item.CompareTag("Chalk"))
         {
-            if (collecteddisplay.chalk == 4 && !oggyScript.isEnraged)
+            if (collecteddisplay.chalk >= 4 && !oggyScript.isEnraged)
             {
                 messageText.text = "*meow*";
                 messageText.fontSize = 120;

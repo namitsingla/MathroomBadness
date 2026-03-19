@@ -14,6 +14,7 @@ public class Collectible : MonoBehaviour
    GameObject baldi;
    BaldiEnemy baldiEnemy;
    ExitDoor exitDoor;
+   BoostsHandler boostsHandler;
    private bool hasBeenCollected = false;
     void Awake()
     {
@@ -25,6 +26,7 @@ public class Collectible : MonoBehaviour
         spawnManager = ReferencesManager.instance.spawnManager;
         baldiEnemy = ReferencesManager.instance.baldiEnemy;
         exitDoor = ReferencesManager.instance.exitDoor;
+        boostsHandler = ReferencesManager.instance.boostsHandler;
 
     }
 
@@ -49,14 +51,28 @@ public class Collectible : MonoBehaviour
         if (spawnManager.spawnedCount < 1000)
         spawnManager.SpawnItem(); 
 
+        int increaseAmount = 1;
+
+        if (boostsHandler.isMitosisOn)
+        {
+            while (true)
+            {
+                int roll = Random.Range(0,100);
+                if (roll<20) 
+                    increaseAmount *= 2;
+                else 
+                    break;
+            }
+        }
+
         //increase item type count
             if (gameObject.CompareTag("Homework"))
             {
-                collecteddisplay.homework += 1;
+                collecteddisplay.homework += increaseAmount;
             }
             else if (gameObject.CompareTag("Chalk"))
             {
-                collecteddisplay.chalk += 1;
+                collecteddisplay.chalk += increaseAmount;
             }
 
 
@@ -66,7 +82,7 @@ public class Collectible : MonoBehaviour
             collecteddisplay.UpdateDisplay();
 
             //activate exit door if collected = 3
-            if (collecteddisplay.collected == 3) exitDoor.ActivateExitDoor();
+            if (collecteddisplay.collected >= exitDoor.requiredItems) exitDoor.ActivateExitDoor();
 
             dialogueSoundManager.PlayCollectSound();
             musicManager.StartPuaseBGMForCollectionText();

@@ -28,6 +28,12 @@ public class CheatManager : MonoBehaviour
                 inputBuffer = "";
             }
 
+            if (inputBuffer.Contains("RIGHTPLACE"))
+            {
+                RightPlace();
+                inputBuffer = "";
+            }
+
             if (inputBuffer.Contains("WALLS"))
             {
                 Walls();
@@ -62,6 +68,8 @@ public class CheatManager : MonoBehaviour
                 inputBuffer = "";
                 gameManager.hasCheated = true;
             }
+
+
         }
 
         if (Time.time - lastKeyTime > resetDelay)
@@ -74,6 +82,11 @@ public class CheatManager : MonoBehaviour
         
         musicManager.PlaySong(9);
         //musicManager.backgroundSource.volume = 1.0f;
+    }
+
+    void RightPlace()
+    {
+        musicManager.PlaySong(0);
     }
 
     void Walls()

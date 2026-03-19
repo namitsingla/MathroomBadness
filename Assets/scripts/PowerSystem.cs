@@ -219,6 +219,7 @@ public class PowerSystem : MonoBehaviour
     {
         StartCoroutine(StunAllEnemies());
         stunnerAudio.Play();
+        StartCoroutine(StunTheMap());
 
         isRecharging = true;
         currentPowerIcon.enabled = false;
@@ -244,6 +245,50 @@ public class PowerSystem : MonoBehaviour
     {
         currentPowerIcon.enabled = true;
         currentPowerIcon.sprite = stunnerIcon;
+    }
+
+    private IEnumerator StunTheMap()
+    {
+        float duration = 3.5f;
+        float startTime = Time.time;
+        
+        // Adjust these to control the pacing
+        float startDelay = 0.20f; // Starts fast (5 times a second)
+        float endDelay = 0.01f;   // Ends incredibly fast (100 times a second)
+        
+        bool toggleSwitch = true;
+
+        // Keep looping as long as 4 seconds haven't passed
+        while (Time.time - startTime < duration)
+        {
+            // 1. Fire the alternating functions
+            if (toggleSwitch)
+            {
+                ChangeMapShader(pacManModeShader);
+            }
+            else
+            {
+                ChangeMapShader(urpLit);
+            }
+
+            // 2. Flip the switch for the next loop
+            toggleSwitch = !toggleSwitch;
+
+            // 3. Calculate how far along we are (0.0 to 1.0)
+            float progress = (Time.time - startTime) / duration;
+
+            // 4. Calculate the current wait time. 
+            // Using Mathf.Pow(progress, 3) makes the delay drop off sharply at the very end.
+            float currentDelay = Mathf.Lerp(startDelay, endDelay, Mathf.Pow(progress, 3));
+
+            // 5. Wait for the calculated delay before looping again
+            yield return new WaitForSeconds(currentDelay);
+        }
+
+        ChangeMapShader(urpLit);
+
+        Debug.Log("4-second sequence complete!");
+        // Optional: Trigger a final explosion or event here!
     }
 
     IEnumerator PowerDotEffect()

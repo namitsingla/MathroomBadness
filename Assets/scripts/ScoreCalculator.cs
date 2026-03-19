@@ -4,6 +4,7 @@ public class ScoreCalculator : MonoBehaviour
 {
     public collectedisplay collectedisplay;
     public ScoreCounter scoreCounter;
+    public RarityManager rarityManager;
 
     public void CalculateScore()
     {
@@ -11,6 +12,8 @@ public class ScoreCalculator : MonoBehaviour
         scoreCounter.AnimateScore(scorewithoutMult, collectedisplay.mult);
 
         collectedisplay.score += Mathf.RoundToInt(scorewithoutMult * collectedisplay.mult);
+
+        rarityManager.UpdateRarityDrops(collectedisplay.collected);
 
         collectedisplay.collected = 0;
         collectedisplay.chalk = 0;

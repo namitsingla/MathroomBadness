@@ -29,39 +29,83 @@ public class Reward
 
 public class RarityManager : MonoBehaviour
 {
+
+    [Header("Rewards")]
     public Button[] rewardButtons;
     public TMP_Text[] rewardTexts; 
-    public List<Reward> rewards;
-    public GameObject rewardsUI;
     public Image[] rewardIcons;
-    public BoostsHandler boostsHandler;
-    public GameManager gameManager;
-    //public collectedisplay collectedisplay;
-    public AudioSource BGM;
-    public collectedisplay collectedisplay;
-    public MusicManager musicManager;
+    public List<Reward> rewards;
+
+
+    [Header("Rarity Drops")]
+    public int rewardCount = 3;
+    public float[] initialWeights =  {50f, 30f, 20f, 5f, 1f};
+    public float[] perRoundIncre = {0f, 3.5f, 3f, 1f, 0.25f};
+    public float[] perItemIncre = {0f, 3f, 2.5f, 1f, 0.2f};
+    public float[] cumulativeFinalWeights = {50f, 80f, 100f, 105f, 106f};
+    public float[] luckIncrement = {1f, 1f, 1f, 1f, 1f};
+
+    
+
+    [Header("Variables")]
     public bool isSpinning = false;
     private int activeSpins = 0;
-    public GameObject rewardButtonsUI;
+
+
+    [Header("Sound Effects")]
+    public AudioSource BGM;
     public AudioSource casinoSound;
     public AudioSource rewardSelectSound;
     public AudioSource cursedRewardSelectSound;
     public AudioSource rewardScreenMusic;
+
+
+    [Header("References")]
+    public GameObject rewardsUI;
+    public BoostsHandler boostsHandler;
+    public GameManager gameManager;
+    public collectedisplay collectedisplay;
+    public MusicManager musicManager;
+    public GameObject rewardButtonsUI;
     public PowerSystem powerSystem;
+
+
+    public void UpdateRarityDrops(int collected)
+    {
+
+        for (int i = 0; i < 5; i++)
+        {
+            cumulativeFinalWeights[i] = 0f;
+            for (int j = 0; j <= i; j++)
+            {
+                cumulativeFinalWeights[i] += (initialWeights[j] + perRoundIncre[j]*(gameManager.round - 1) + perItemIncre[j]*(collected - 3))*luckIncrement[j];
+            }
+        }
+
+        for (int i = 0; i < 5; i++)
+            Debug.Log(cumulativeFinalWeights[i]/cumulativeFinalWeights[4]);
+    }
+
+    public void IncreaseLuckBy(int increaseLuckBy)
+    {
+        luckIncrement[2] += 1f/6f *increaseLuckBy;
+        luckIncrement[3] += 0.5f *increaseLuckBy;
+        luckIncrement[4] += 4f/3f *increaseLuckBy;
+    }
 
     Reward GetRandomRewardFromPool(List<Reward> pool)
     {
-        int roll = Random.Range(0,101);
+        float roll = Random.Range(0,cumulativeFinalWeights[4]);
 
         Rarity selectedRarity;
 
-        if (roll < 45)
+        if (roll < cumulativeFinalWeights[0])
             selectedRarity = Rarity.Common;
-        else if (roll < 75)
+        else if (roll < cumulativeFinalWeights[1])
             selectedRarity = Rarity.Rare;
-        else if (roll < 95)
+        else if (roll < cumulativeFinalWeights[2])
             selectedRarity = Rarity.Epic;
-        else if (roll < 100)
+        else if (roll < cumulativeFinalWeights[3])
             selectedRarity = Rarity.Cursed;
         else 
             selectedRarity = Rarity.Legendary;
@@ -97,10 +141,10 @@ public class RarityManager : MonoBehaviour
         isSpinning = true;
 
         List<Reward> tempPool = new List<Reward>(rewards);
-        Reward[] finalRewards = new Reward[3];
+        Reward[] finalRewards = new Reward[rewardCount];
 
         // First decide all rewards
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < rewardCount; i++)
         {
             if (tempPool.Count == 0)
                 continue;
@@ -116,7 +160,7 @@ public class RarityManager : MonoBehaviour
         // Then spin them all at once
         activeSpins = 0;
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < rewardCount; i++)
         {
             if (finalRewards[i] != null)
             {
@@ -251,7 +295,7 @@ public class RarityManager : MonoBehaviour
                 boostsHandler.WallRunner();
                 break;   
 
-            case "A Random PowerUp Each Round":
+            case "Entropy Cache":
                 boostsHandler.RandomPowerUp();
                 break;  
 
@@ -270,6 +314,38 @@ public class RarityManager : MonoBehaviour
             case "Prison Realm":
                 boostsHandler.PrisonRealm();
                 break;
+
+            case "The Fourth Wall":
+                boostsHandler.TheFourthWall();
+                break;
+
+            case "Corner Cutter":
+                boostsHandler.CornerCutter();
+                break;
+            
+            case "Schrodinger's Cat":
+                boostsHandler.SchrodingersCat();
+                break;
+
+            case "Mitosis":
+                boostsHandler.Mitosis();
+                break;
+
+            case "High Stakes":
+                boostsHandler.HighStakes();
+                break;
+
+            case "Aura Farming":
+                boostsHandler.AuraFarming();
+                break;
+
+            case "Tunnel Vision":
+                boostsHandler.TunnelVision();
+                break;
+
+            case "Loaded Dice":
+                boostsHandler.LoadedDice();
+                break;
         }
 
         // Hide UI
@@ -279,6 +355,7 @@ public class RarityManager : MonoBehaviour
         BGM.UnPause();
         Cursor.lockState = CursorLockMode.Locked;
         collectedisplay.mult += 0.1f;
+        
         StartCoroutine(powerSystem.StunAllEnemies());
 
         if (boostsHandler.ifRandomPowerUpEachRound)
