@@ -221,7 +221,14 @@ public class BoostsHandler : MonoBehaviour
 
         rarityManager.rewardButtons[0].GetComponent<RectTransform>().anchoredPosition = new Vector2( 0f ,0f);
 
-        rarityManager.IncreaseLuckBy(8);
+        // removing common and rare items from selection
+        rarityManager.initialWeights[0] = 0f;
+        rarityManager.initialWeights[1] = 0f;
+        rarityManager.perItemIncre[1] = 0f;
+        rarityManager.perRoundIncre[1] = 0f;
+
+        // increasing luck
+        rarityManager.IncreaseLuckBy(5);
     }
 
     public void LoadedDice()

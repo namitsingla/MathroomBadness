@@ -390,19 +390,19 @@ public class PowerSystem : MonoBehaviour
         if (type == CatchType.baldi)
             {
                 capturedEnemy = baldi;
-                baldiEnemy.baldiBaseSpeed *= 2f;
+                baldiEnemy.baldiBaseSpeed *= 1.2f;
                 Debug.Log("Baldi");
             }
         else if (type == CatchType.uiiacat)
             {
                 capturedEnemy = uiiaCat;
-                uiiaNavMesh.speed *= 2f;
+                uiiaNavMesh.speed *= 1.2f;
                 Debug.Log("UIIA");
             }
         else if (type == CatchType.oggy)
             {
                 capturedEnemy = oggy;
-                enemyController.oggyBAseSpeed *= 2f;
+                enemyController.oggyBAseSpeed *= 1.2f;
                 Debug.Log("Oggy");
             }
 

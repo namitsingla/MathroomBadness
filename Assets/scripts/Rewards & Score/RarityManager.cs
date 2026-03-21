@@ -319,7 +319,7 @@ public class RarityManager : MonoBehaviour
                 boostsHandler.TheFourthWall();
                 break;
 
-            case "Corner Cutter":
+            case "Diagonalizer":
                 boostsHandler.CornerCutter();
                 break;
             
@@ -339,7 +339,7 @@ public class RarityManager : MonoBehaviour
                 boostsHandler.AuraFarming();
                 break;
 
-            case "Tunnel Vision":
+            case "Choice Specs":
                 boostsHandler.TunnelVision();
                 break;
 

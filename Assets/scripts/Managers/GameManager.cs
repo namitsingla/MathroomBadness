@@ -192,7 +192,10 @@ public class GameManager : MonoBehaviour
             endScreeen.SetActive(true);
 
             if (!hasCheated)
+            {
                 endScore.text = "CLASS OVER\nSCORE: " + collectedisplay.score.ToString();
+                UploadScore();
+            }
             else 
                 endScore.text = "CHEATS HAVE\nBEEN USED";
 
@@ -200,6 +203,11 @@ public class GameManager : MonoBehaviour
             musicManager.PlaySong(8);
 
         }
+    }
+
+    private async void UploadScore()
+    {
+        await LeaderboardManager.Instance.SubmitScoreForDifficulty(collectedisplay.score, SettingsData.Difficulty);
     }
 
     void Update()
