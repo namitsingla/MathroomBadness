@@ -1,6 +1,10 @@
 using UnityEngine;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+//using Microsoft.Unity.VisualStudio.Editor;
+using UnityEngine.UI;
+using Unity.VisualScripting;
 
 public class BoostsHandler : MonoBehaviour
 {
@@ -24,7 +28,17 @@ public class BoostsHandler : MonoBehaviour
     int playerLayer;
     int uiiaWallsLayer;
     public bool isMitosisOn = false;
+    public int mitosisMultiplier = 2;
     public ExitDoor exitDoor;
+    public bool isPassiveMagnetOn = false;
+    public ParticleSystem sandBurst;
+    public AudioSource sandHitSoundSource;
+    public AudioClip sandHitSound;
+    public bool isShukakuActive = false;
+    public Image shukakuSprite;
+    public Image shukakuRechargeCirle;
+    public bool isShukakuRecharging = false;
+    private float shukakuCooldown = 0f;
 
 
     List<Action> powerUps = new List<Action>();
@@ -52,7 +66,7 @@ public class BoostsHandler : MonoBehaviour
 
     public void MultiplierIncrease()
     {
-        collectedisplay.mult += 0.15f;
+        collectedisplay.mult += 0.25f;
     }
 
     public void VisionIncrease()
@@ -68,26 +82,26 @@ public class BoostsHandler : MonoBehaviour
 
     public void SlowDownEnemies()
     {
-        baldiEnemy.baldiBaseSpeed *= 0.75f;
+        baldiEnemy.baldiBaseSpeed *= 0.70f;
         baldiNavMesh.speed = baldiEnemy.baldiBaseSpeed;
-        uiiaNavMesh.speed *= 0.75f;
-        enemyController.oggyBAseSpeed *= 0.75f;
+        uiiaNavMesh.speed *= 0.70f;
+        enemyController.oggyBAseSpeed *= 0.70f;
         oggyNavMesh.speed = enemyController.oggyBAseSpeed;
     }
 
     public void InvincibilityShield()
     {
-        powerSystem.currentPower.AssignPower(powerSystem.invincibilityShield);
+        powerSystem.EquipPower(powerSystem.invincibilityShield);
     }
 
     public void Teleporter()
     {
-        powerSystem.currentPower.AssignPower(powerSystem.teleporter);
+        powerSystem.EquipPower(powerSystem.teleporter);
     }
 
     public void Stunner()
     {
-        powerSystem.currentPower.AssignPower(powerSystem.stunner);
+        powerSystem.EquipPower(powerSystem.stunner);
     }
 
     public void RagebaitBaldi()
@@ -110,12 +124,12 @@ public class BoostsHandler : MonoBehaviour
 
     public void PowerDot()
     {
-        powerSystem.currentPower.AssignPower(powerSystem.powerDot);
+        powerSystem.EquipPower(powerSystem.powerDot);
     }
 
     public void WallBreaker()
     {
-        powerSystem.currentPower.AssignPower(powerSystem.wallBreaker);
+        powerSystem.EquipPower(powerSystem.wallBreaker);
     }
 
     public void AnExtraLife()
@@ -143,7 +157,7 @@ public class BoostsHandler : MonoBehaviour
 
     public void GetRandomPowerUp()
     {
-        if (powerSystem.currentPower == null || powerSystem.currentPower.Effect == powerSystem.deEquipPower.Effect)
+        if (powerSystem.currentPower == null || powerSystem.currentPower.Effect == powerSystem.deEquipPower.Effect || powerSystem.isRecharging || powerSystem.isPowerActive)
         {
             Action chosen = powerUps[UnityEngine.Random.Range(0, powerUps.Count)];
             chosen.Invoke(); 
@@ -153,18 +167,18 @@ public class BoostsHandler : MonoBehaviour
 
     public void TimeSpeedUp()
     {
-        gameManager.gameSpeed *= 1.25f;
+        gameManager.gameSpeed *= 1.4f;
         collectedisplay.mult += 1.4f;
     }
 
     public void IncreaseItemSpawnRate()
     {
-        spawnManager.spawnCount += 1;
+        spawnManager.spawnCount += 2;
     }
 
     public void PrisonRealm()
     {
-        powerSystem.currentPower.AssignPower(powerSystem.prisonRealm);
+        powerSystem.EquipPower(powerSystem.prisonRealm);
     }
 
     public void TheFourthWall()
@@ -197,6 +211,11 @@ public class BoostsHandler : MonoBehaviour
     public void Mitosis()
     {
         isMitosisOn = true;
+    }
+
+    public void Meiosis()
+    {
+        mitosisMultiplier = 4;
     }
 
     public void HighStakes()
@@ -233,6 +252,65 @@ public class BoostsHandler : MonoBehaviour
 
     public void LoadedDice()
     {
-        rarityManager.IncreaseLuckBy(1);
+        rarityManager.IncreaseLuckBy(2);
+    }
+
+    public void PassiveMagnet()
+    {
+        isPassiveMagnetOn = true;
+    }
+
+    public void ShukakuTurnOn()
+    {
+        isShukakuActive = true;
+        shukakuSprite.enabled = true;
+
+        player_Controller.moveSpeed *= 0.8f;
+        mainCamera.fieldOfView -= 10f;
+
+    }
+
+    public IEnumerator ShukakuProtection(CatchType type)
+    {
+        gameManager.isDead = true;
+        powerSystem.StunHitEnemy(type, 2.5f);
+        PlaySandEffect();
+        isShukakuActive = false;
+        isShukakuRecharging = true;
+        shukakuSprite.enabled = false;
+
+        yield return new WaitForSeconds(1f);
+
+        gameManager.isDead = false;
+    }
+    public void PlaySandEffect()
+    {
+        sandBurst.Play();
+
+        // This tricks the brain into thinking it's a new sound every time!
+        sandHitSoundSource.pitch = 1f + UnityEngine.Random.Range(-0.15f, 0.15f);
+        
+        // PlayOneShot lets multiple hits overlap without cutting off
+        sandHitSoundSource.PlayOneShot(sandHitSound);
+    }
+
+    void Update()
+    {
+        if (isShukakuRecharging)
+        {
+            shukakuCooldown += Time.deltaTime;
+            
+            // Fills the circle back up over time (0.0 to 1.0)
+            shukakuRechargeCirle.fillAmount = 1 - shukakuCooldown / 5f;
+
+            if (shukakuCooldown >= 5f)
+            {
+                shukakuCooldown = 0f;
+                isShukakuRecharging = false;
+                isShukakuActive = true;
+                shukakuSprite.enabled = true;
+                Debug.Log("Recharge Complete!");
+            }
+        }
     }
 }

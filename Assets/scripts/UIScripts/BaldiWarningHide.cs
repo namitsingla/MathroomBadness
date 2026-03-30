@@ -13,7 +13,9 @@ public class BaldiWarningHide : MonoBehaviour
     public Image baldi_frown;
     public Image baldi_talk;
     public Image baldi_rotate;
+    public Image prisonRealmImage;
     public AudioSource typingSound;
+    public PowerSystem powerSystem;
 
     public float typingSpeed = 0.07f;
 
@@ -361,6 +363,7 @@ public class BaldiWarningHide : MonoBehaviour
         baldi_frown.enabled = false;
         baldi_rotate.enabled = false;
         baldi_talk.enabled = false;
+        prisonRealmImage.enabled = false;
         Invoke("HideBaldiWarning", 5f);
     }
 
@@ -383,7 +386,11 @@ public class BaldiWarningHide : MonoBehaviour
             {
                 messageText.text = "*strikes*";
                 messageText.fontSize = 120;
-                baldi_frown.enabled = true;
+
+                if (!powerSystem.isBaldiImprisoned)
+                    baldi_frown.enabled = true;
+                else
+                    prisonRealmImage.enabled = true;
 
                 baldiScript.lookRadius = 1000f;
                 baldiScript.isEnraged = true;
@@ -394,7 +401,11 @@ public class BaldiWarningHide : MonoBehaviour
                 Quote q = homeworkQuotes[Random.Range(0, homeworkQuotes.Length)];
                 messageText.text = q.text;
                 messageText.fontSize = q.fontSize;
-                baldi_talk.enabled = true;
+
+                if (!powerSystem.isBaldiImprisoned)
+                    baldi_talk.enabled = true;
+                else
+                    prisonRealmImage.enabled = true;
             }
         }
         else if (item.CompareTag("Chalk"))
@@ -422,7 +433,11 @@ public class BaldiWarningHide : MonoBehaviour
                 Quote q = chalkQuotes[Random.Range(0, chalkQuotes.Length)];
                 messageText.text = q.text;
                 messageText.fontSize = q.fontSize;
-                baldi_rotate.enabled = true;
+                
+                if (!powerSystem.isBaldiImprisoned)
+                    baldi_rotate.enabled = true;
+                else
+                    prisonRealmImage.enabled = true;
             }
         }
 

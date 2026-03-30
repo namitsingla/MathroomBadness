@@ -223,7 +223,7 @@ public class ScoreCounter : MonoBehaviour
 
         // Target position = total score position
         Vector2 startPos = flyRect.anchoredPosition;
-        Vector2 targetPos = totalRect.anchoredPosition + new Vector2(-250f, -300f);
+        Vector2 targetPos = totalRect.anchoredPosition + new Vector2(400f, 250f);
 
         // Capture scale sizes
         Vector3 startScale = Vector3.one;

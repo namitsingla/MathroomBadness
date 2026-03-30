@@ -122,6 +122,6 @@ public class CheatManager : MonoBehaviour
 
     void PrisonRealm()
     {
-        powerSystem.currentPower.AssignPower(powerSystem.prisonRealm);
+        powerSystem.EquipPower(powerSystem.prisonRealm);
     }
 }

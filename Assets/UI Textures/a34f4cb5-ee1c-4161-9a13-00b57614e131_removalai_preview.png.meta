@@ -43,7 +43,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 0
   alignment: 0
@@ -106,9 +106,110 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: a34f4cb5-ee1c-4161-9a13-00b57614e131_removalai_preview_0
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 280
+        width: 360
+        height: 101
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: abca4c1b5a0bad7438ca0e46d5700c68
+      internalID: 120786837
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: a34f4cb5-ee1c-4161-9a13-00b57614e131_removalai_preview_1
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 177
+        width: 359
+        height: 95
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4e15bfa9bdc912649be411567f47a3cf
+      internalID: -179224827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: a34f4cb5-ee1c-4161-9a13-00b57614e131_removalai_preview_2
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 96
+        width: 280
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4d0b88867c1f7b14aa43c4f7c7bed6c1
+      internalID: -1011132843
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: a34f4cb5-ee1c-4161-9a13-00b57614e131_removalai_preview_3
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 16
+        width: 167
+        height: 72
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d4163532cc4455c47861aa5f3fe4f4fe
+      internalID: 1008917981
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -121,8 +222,14 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
-    nameFileIdTable: {}
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      a34f4cb5-ee1c-4161-9a13-00b57614e131_removalai_preview_0: 120786837
+      a34f4cb5-ee1c-4161-9a13-00b57614e131_removalai_preview_1: -179224827
+      a34f4cb5-ee1c-4161-9a13-00b57614e131_removalai_preview_2: -1011132843
+      a34f4cb5-ee1c-4161-9a13-00b57614e131_removalai_preview_3: 1008917981
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

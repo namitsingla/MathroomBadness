@@ -5,13 +5,17 @@ public class WallRunner : MonoBehaviour
     public player_controller player_Controller;
     public BoostsHandler boostsHandler;
     public GameObject runningOverlay;
+    public bool isPlayerWallrunning = false;
     private void OnTriggerEnter(Collider collision)
     {
         if (!boostsHandler.isWallRunner) return;
+        if (isPlayerWallrunning) return;
+
         if (collision.GetComponent<Collider>().CompareTag("Walls"))
         {
             player_Controller.moveSpeed *= 1.5f;
             runningOverlay.SetActive(true);
+            isPlayerWallrunning = true;
         }
             
     }
@@ -19,10 +23,13 @@ public class WallRunner : MonoBehaviour
     private void OnTriggerExit(Collider collision)
     {
         if (!boostsHandler.isWallRunner) return;
+        if (!isPlayerWallrunning) return;
+
         if (collision.GetComponent<Collider>().CompareTag("Walls"))
         {
             player_Controller.moveSpeed /= 1.5f;
             runningOverlay.SetActive(false);
+            isPlayerWallrunning = false;
         }      
     }
 }

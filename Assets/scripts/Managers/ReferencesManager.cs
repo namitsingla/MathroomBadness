@@ -16,6 +16,7 @@ public class ReferencesManager : MonoBehaviour
    public ExitDoor exitDoor;
    public BoostsHandler boostsHandler;
    public Transform player;
+   public PowerSystem powerSystem;
 
     void Awake () 
     {

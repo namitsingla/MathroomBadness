@@ -185,6 +185,7 @@ public class SpawnManager : MonoBehaviour
 
     public void SpawnEnemy(UnityEngine.AI.NavMeshAgent enemy)
     {
+        
         // Reset all spawn points
         foreach (var sp in spawnPoints)
             sp.active = true;

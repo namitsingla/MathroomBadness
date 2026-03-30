@@ -12,47 +12,63 @@ public enum CatchType
     }
 public class GameManager : MonoBehaviour
 {
+    [Header("Game State")]
     public int lives = 3;
     public int round = 1;
+    public float gameSpeed = 1f;
+    public bool isDead = false;
+    public bool hasGameEnded = false;
+    public bool hasCheated = false;
 
+    [Header("Player Settings")]
     public GameObject player;
     public player_controller movement;
+
+    [Header("Enemy References")]
     public GameObject baldi;
     public GameObject uiiacat;
     public GameObject oggy;
-
-    Vector3 playerspawn = new Vector3(40f, 2.1f, 100f);
-    Vector3 baldispawn = new Vector3(135f, 2.5f, -22.5f);
-    Vector3 uiiacatspawn = new Vector3(-110f, 2f, 100f);
-    Vector3 oggyspawn = new Vector3(-10f, 2f, -70f);
-
-    public bool isDead = false;
-    private float deathScreenTime = 2.5f;
-    public DialogueSoundManager dialogueSoundManager;
-    public SpawnManager spawnManager;
-
-    //for baldi death screen
-    public RawImage baldiJumpscare;
-    public RectTransform baldiJumpscarePosiiton;
-    public AudioSource BGM;
-    public PowerSystem powerSystem;
-    public float gameSpeed = 1f;
     public UIIAController uIIAController;
 
-    public bool hasGameEnded = false;
+    [Header("Spawn Coordinates")]
+    [SerializeField] private Vector3 playerspawn = new Vector3(40f, 3.1f, 100f);
+    [SerializeField] private Vector3 baldispawn = new Vector3(135f, 2.5f, -22.5f);
+    [SerializeField] private Vector3 uiiacatspawn = new Vector3(-110f, 2f, 100f);
+    [SerializeField] private Vector3 oggyspawn = new Vector3(-10f, 2f, -70f);
+
+    [Header("Death Sequence & Jumpscares")]
+    [SerializeField] private float deathScreenTime = 2.5f;
+    public RawImage baldiJumpscare;
+    public RectTransform baldiJumpscarePosiiton; // (Typo here: Posiiton)
+
+    [Header("Managers")]
+    public SpawnManager spawnManager;
+    public PowerSystem powerSystem;
+    public MusicManager musicManager;
+    public DialogueSoundManager dialogueSoundManager;
+    public BoostsHandler boostsHandler;
+
+    [Header("UI & HUD")]
+    public GameObject baldiWarningcanvas;
     public GameObject endScreeen;
     public TextMeshProUGUI endScore;
     public collectedisplay collectedisplay;
+
+    [Header("Audio")]
+    public AudioSource BGM;
     public AudioSource uiiacatmusic;
     public AudioSource gameOverSound;
-    public bool hasCheated = false;
-    public MusicManager musicManager;
-    public GameObject baldiWarningcanvas;
     public void KhelKhatam(Transform lookTarget, CatchType type)
     {
         if (powerSystem.isPowerDotOn) return;
 
         if (isDead) return;
+
+        if (boostsHandler.isShukakuActive)
+        {
+            StartCoroutine(boostsHandler.ShukakuProtection(type));
+            return;
+        }
 
         if (powerSystem.isPrisonRealmActive) 
             powerSystem.EnemyCaughtInPrison(type); 
@@ -61,6 +77,7 @@ public class GameManager : MonoBehaviour
             isDead = true;
 
             movement.enabled = false;
+            player.GetComponent<CharacterController>().enabled = false;
 
             if (type == CatchType.baldi)
             {
@@ -127,17 +144,36 @@ public class GameManager : MonoBehaviour
 
     IEnumerator RotateTowards(Vector3 target, float duration)
     {
-        Quaternion start = transform.rotation;
-        Vector3 dir = (target - transform.position).normalized;
+        // WE MUST SPECIFY player.transform EVERYWHERE HERE
+        Vector3 flatTarget = new Vector3(target.x, player.transform.position.y, target.z);
+        Vector3 dir = (flatTarget - player.transform.position).normalized;
+        if (dir == Vector3.zero) yield break;
+
+        Quaternion start = player.transform.rotation;
         Quaternion end = Quaternion.LookRotation(dir);
 
         float t = 0;
         while (t < 1)
         {
             t += Time.deltaTime / duration;
-            transform.rotation = Quaternion.Slerp(start, end, t);
+            
+            // 1. Apply the rotation to the PLAYER
+            player.transform.rotation = Quaternion.Slerp(start, end, t);
+
+            // 2. Lock X and Z on the PLAYER
+            Vector3 currentEuler = player.transform.eulerAngles;
+            currentEuler.x = 0;
+            currentEuler.z = 0;
+            player.transform.eulerAngles = currentEuler;
+
             yield return null;
         }
+        
+        // 3. Lock final rotation on the PLAYER
+        Vector3 finalEuler = end.eulerAngles;
+        finalEuler.x = 0;
+        finalEuler.z = 0;
+        player.transform.eulerAngles = finalEuler;
     }
 
     public IEnumerator FinishDeathSequence()
@@ -151,13 +187,7 @@ public class GameManager : MonoBehaviour
             isDead = false;
 
             //to only activate it if not in prison
-            bool releaseBaldi = true;
-            foreach (PrisonData list in powerSystem.imprisonedEnemies)
-            {
-                if (list.Enemy == baldi) 
-                    releaseBaldi = false;
-            }
-            if (releaseBaldi)
+            if (!powerSystem.isBaldiImprisoned)
                 baldi.SetActive(true);
             else 
                 Debug.Log("Baldi is stil in priosn");
@@ -182,7 +212,7 @@ public class GameManager : MonoBehaviour
 
             baldiWarningcanvas.SetActive(false);
 
-            StartCoroutine(powerSystem.StunAllEnemies());
+            StartCoroutine(powerSystem.StunAllEnemies(5f));
         }
         else
         {

@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Threading.Tasks;
 using Unity.Services.Authentication;
 using Unity.Services.Leaderboards.Models;
+using Unity.VisualScripting;
 
 public class LeaderboardUI : MonoBehaviour
 {
@@ -15,11 +16,21 @@ public class LeaderboardUI : MonoBehaviour
     public Color normalColor = new Color(0.2f, 0.2f, 0.2f, 1f); // Dark Grey
     public Color playerColor = new Color(0.8f, 0.6f, 0.1f, 1f); // Gold/Yellow
 
+    public Color defaultBtnColor = Color.white; 
+    public Color selectedBtnColor = new Color(0.8f, 0.8f, 0.8f, 1f); // Slightly darker grey
+
     [Header("Difficulty Buttons")]
     public Button easyBtn;
     public Button normalBtn;
     public Button hardBtn;
     public Button madnessBtn;
+
+    [Header("Difficulty Button Images")]
+    public RawImage easyImage;
+    public RawImage normalImage;
+    public RawImage hardImage;
+    public RawImage madnessImage;
+
 
     private void Start()
     {
@@ -130,6 +141,8 @@ public class LeaderboardUI : MonoBehaviour
         normalBtn.interactable = true;
         hardBtn.interactable = true;
         madnessBtn.interactable = true;
+
+        HighlightDifficultyButton(difficulty);
     }
 
     private void SpawnRow(string rank, string name, string score, bool isPlayer)
@@ -139,6 +152,15 @@ public class LeaderboardUI : MonoBehaviour
         
         Color bgColor = isPlayer ? playerColor : normalColor;
         rowScript.Setup(rank, name, score, bgColor);
+    }
+
+    private void HighlightDifficultyButton(int difficulty)
+    {
+        // Set the color based on which difficulty was selected
+        easyImage.color = (difficulty == 0) ? selectedBtnColor : defaultBtnColor;
+        normalImage.color = (difficulty == 1) ? selectedBtnColor : defaultBtnColor;
+        hardImage.color = (difficulty == 2) ? selectedBtnColor : defaultBtnColor;
+        madnessImage.color = (difficulty == 3) ? selectedBtnColor : defaultBtnColor;
     }
 
     [ContextMenu("TEST: Spawn 10 Fake Rows")]

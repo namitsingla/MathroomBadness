@@ -14,7 +14,7 @@ public class UIIAmusicmanager : MonoBehaviour
     }
     public void Update()
     {
-        if (!pauseMenu.GameIsPaused)
+        if (!PauseMenu.GameIsPaused)
         {
         // when current song finishes, play another random one
         if (!audioSource.isPlaying)

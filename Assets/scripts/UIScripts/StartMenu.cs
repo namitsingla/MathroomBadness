@@ -20,9 +20,11 @@ public class StartMenu : MonoBehaviour
       SettingsData.CameraSensitivity = PlayerPrefs.GetFloat("SensitivityPreference", 0.7f);
       sensitivitySlider.value = SettingsData.CameraSensitivity; 
 
-      float volume;
-      AudioMixer.GetFloat("volume", out volume);
-      volumeSlider.value = volume; 
+      float dB;
+      AudioMixer.GetFloat("volume", out dB);
+
+      // This reverses the Log10 math so the slider (0-1) matches the dB (-80 to 0)
+      volumeSlider.value = Mathf.Pow(10, dB / 20);
    }
    
    public void StartClass()
@@ -35,26 +37,15 @@ public class StartMenu : MonoBehaviour
       Application.Quit();
    }
 
-   public void SetVolume(float volume)
-   {
-      AudioMixer.SetFloat("volume", volume);
-   }
-
-   public void SetSenstivity(float value)
-   {
-      SettingsData.CameraSensitivity = value;
-      PlayerPrefs.SetFloat("SensitivityPreference", value); 
-      PlayerPrefs.Save();
-   }
-
    public void ResetToDefault()
    {
       // 1. Reset and save Sensitivity
       SettingsData.CameraSensitivity = 0.7f;
       PlayerPrefs.SetFloat("SensitivityPreference", 0.7f);
 
-      // 2. Reset Volume
-      AudioMixer.SetFloat("volume", 0f);
+      // 2. Reset Volume to 90% (0.9f)
+      // By calling SetVolume here, we apply the audio math AND save it to PlayerPrefs automatically
+      SetVolume(0.9f); 
 
       // 3. Reset Graphics to highest (Index 2 for High)
       QualitySettings.SetQualityLevel(2, true);
@@ -63,33 +54,59 @@ public class StartMenu : MonoBehaviour
       // 4. Reset Resolution to highest available on the monitor
       int highestResIndex = 0; // Keep track of the index for the UI
       Resolution[] availableResolutions = Screen.resolutions;
-      
+         
       if (availableResolutions.Length > 0)
       {
-          highestResIndex = availableResolutions.Length - 1;
-          Resolution highestRes = availableResolutions[highestResIndex];
-          
-          Screen.SetResolution(highestRes.width, highestRes.height, true);
-          PlayerPrefs.SetInt("ResolutionPreference", highestResIndex);
+         highestResIndex = availableResolutions.Length - 1;
+         Resolution highestRes = availableResolutions[highestResIndex];
+            
+         Screen.SetResolution(highestRes.width, highestRes.height, true);
+         PlayerPrefs.SetInt("ResolutionPreference", highestResIndex);
       }
 
       PlayerPrefs.Save();
 
       // --- Update all the UI elements to reflect the newly applied defaults ---
       sensitivitySlider.value = 0.7f;
-      volumeSlider.value = 0f;
+      
+      // Set slider to 80%
+      volumeSlider.value = 0.8f; 
 
       if (qualityDropdown != null)
       {
-          qualityDropdown.value = 2; // 2 = High
-          qualityDropdown.RefreshShownValue();
+         qualityDropdown.value = 2; // 2 = High
+         qualityDropdown.RefreshShownValue();
       }
 
       if (resolutionDropdown != null)
       {
-          resolutionDropdown.value = highestResIndex;
-          resolutionDropdown.RefreshShownValue();
+         resolutionDropdown.value = highestResIndex;
+         resolutionDropdown.RefreshShownValue();
       }
+   }
+
+   public void SetVolume(float volume)
+   {
+      // This math converts the 0-1 slider to a logarithmic -80 to 0dB scale
+      if (volume > 0)
+      {
+         AudioMixer.SetFloat("volume", Mathf.Log10(volume) * 20);
+      }
+      else
+      {
+         AudioMixer.SetFloat("volume", -80f);
+      }
+
+      // Save the volume preference
+      PlayerPrefs.SetFloat("VolumePreference", volume);
+      PlayerPrefs.Save();
+   }
+
+   public void SetSenstivity(float value)
+   {
+      SettingsData.CameraSensitivity = value;
+      PlayerPrefs.SetFloat("SensitivityPreference", value); 
+      PlayerPrefs.Save();
    }
 
    public void SetEasy()

@@ -2,7 +2,6 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine.UI;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
@@ -12,6 +11,7 @@ public class Power
 {
     public Func<IEnumerator> Effect;
     public Action onEquip;
+    public float duration = 0f;
     public float rechargeTime = 0f;
     public bool isReusable = false;
 
@@ -19,6 +19,7 @@ public class Power
     {
         Effect = other.Effect;
         other.onEquip();
+        duration = other.duration;
         rechargeTime = other.rechargeTime;
         isReusable = other.isReusable;
     }
@@ -74,13 +75,17 @@ public class PowerSystem : MonoBehaviour
     public Shader prisonRealmShader;
     public GameObject priosnRealmCaughtImage;
 
-
     [Header("Variables")]
     public bool isPowerDotOn = false;
     private float currentCooldown = 0f;
-    private bool isRecharging = false;
+    public bool isRecharging = false;
+    public bool isPowerActive = false;
+    private float currentActiveTime = 0f;
     public bool isPrisonRealmActive = false;
+    public bool isStunnerActive = false;
     public List<PrisonData> imprisonedEnemies = new List<PrisonData>();
+    public bool isBaldiImprisoned = false;
+    private bool powerUpInput = false;
 
 
     [Header("References")]
@@ -102,6 +107,7 @@ public class PowerSystem : MonoBehaviour
     public GameObject baldi;
     public GameObject oggy;
     public GameObject uiiaCat;
+    public player_controller player_Controller;
 
 
     void Awake()
@@ -115,6 +121,7 @@ public class PowerSystem : MonoBehaviour
         invincibilityShield = new Power();
         invincibilityShield.Effect = InvincibilityShieldEffect;
         invincibilityShield.onEquip = InvincibilityShieldOnEquip;
+        invincibilityShield.duration = 14f;
 
         teleporter = new Power();
         teleporter.Effect = TeleporterEffect;
@@ -124,13 +131,15 @@ public class PowerSystem : MonoBehaviour
         stunner.Effect = StunnerEffect;
         stunner.onEquip = StunnerOnEquip;
         stunner.isReusable = true;
-        stunner.rechargeTime = 30f;
+        stunner.duration = 5f;
+        // stunner.rechargeTime = 20f;
 
         powerDot = new Power();
         powerDot.Effect =  PowerDotEffect;
         powerDot.onEquip = PowerDotOnEquip;
         Shader.SetGlobalFloat("_FrightenedAmount", 0f);
         Shader.SetGlobalFloat("_FrightenedFlash", 0f);
+        powerDot.duration = 7f;
         urpLit = Shader.Find("Universal Render Pipeline/Lit");
 
         wallBreaker = new Power();
@@ -143,7 +152,7 @@ public class PowerSystem : MonoBehaviour
         //prisonRealm.isReusable = true;
         
 
-        currentPower.AssignPower(powerDot);
+        EquipPower(powerDot);
         ChangeMapShader(urpLit);
     }
 
@@ -157,29 +166,42 @@ public class PowerSystem : MonoBehaviour
         currentPowerIcon.enabled = false;
     }
 
+    public void EquipPower(Power newPower)
+    {
+        // 1. Assign the power (this updates the duration, effect, and calls onEquip)
+        currentPower.AssignPower(newPower);
+
+        // 2. Reset the lock-out flags so the new power can be used immediately
+        isPowerActive = false;
+        isRecharging = false;
+        
+        // 3. Reset the timers
+        currentActiveTime = 0f;
+        currentCooldown = 0f;
+
+        // 4. Reset the UI circle to full
+        rechargeCircle.fillAmount = 1f; 
+
+        rechargeCircle.enabled = false;
+    }
+
 
     IEnumerator InvincibilityShieldEffect()
     {
         gameManager.isDead = true;
         invincibilityShieldAudio.Play();
 
-        if (GraphicsSettings.currentRenderPipeline != URP_Low)
-        {
-            SetFullScreenPass(true);
-            invincibilityShieldOverlay.SetActive(true);
-        }
+        SetFullScreenPass(true);
+        invincibilityShieldOverlay.SetActive(true);
 
         Debug.Log("Invincibility activated");
 
-        yield return new WaitForSeconds(14f);
+        yield return new WaitForSeconds(invincibilityShield.duration);
         gameManager.isDead = false;
         invincibilityShieldAudio.Stop();
 
-        if (GraphicsSettings.currentRenderPipeline != URP_Low)
-        {
-            SetFullScreenPass(false);
-            invincibilityShieldOverlay.SetActive(false);            
-        }
+        SetFullScreenPass(false);
+        invincibilityShieldOverlay.SetActive(false);            
         
         Debug.Log("Invincibility ended");
     }
@@ -217,7 +239,7 @@ public class PowerSystem : MonoBehaviour
 
     IEnumerator StunnerEffect()
     {
-        StartCoroutine(StunAllEnemies());
+        StartCoroutine(StunAllEnemies(stunner.duration));
         stunnerAudio.Play();
         StartCoroutine(StunTheMap());
 
@@ -226,19 +248,54 @@ public class PowerSystem : MonoBehaviour
 
         yield return null;
     }
+    public IEnumerator StunAllEnemies(float duration)
+    {
+        StartCoroutine(StunBaldi(duration));
+        StartCoroutine(StunOggy(duration));
+        StartCoroutine(StunUiia(duration));
 
-    public IEnumerator StunAllEnemies()
+        yield return null;
+    }
+
+    public IEnumerator StunBaldi( float duration)
     {
         float baldiSpeed = baldiNavMesh.speed;
         baldiNavMesh.speed = 0f;
-        float uiiaSpeed = uiiaNavMesh.speed;
-        uiiaNavMesh.speed = 0f;
+        isStunnerActive = true;
+
+        yield return new WaitForSeconds(duration);
+
+        baldiNavMesh.speed = baldiSpeed;
+        isStunnerActive = false;
+    }
+
+    public IEnumerator StunOggy(float duration)
+    {
         enemyController.isStunned = true;
 
-        yield return new WaitForSeconds(5f);
-        baldiNavMesh.speed = baldiSpeed;
+        yield return new WaitForSeconds(duration);
+        
         enemyController.isStunned = false;
+    }
+
+    public IEnumerator StunUiia(float duration)
+    {
+        float uiiaSpeed = uiiaNavMesh.speed;
+        uiiaNavMesh.speed = 0f;
+
+        yield return new WaitForSeconds(duration);
+        
         uiiaNavMesh.speed = uiiaSpeed;
+    }
+
+    public void StunHitEnemy(CatchType type, float duration)
+    {
+        if (type == CatchType.baldi) 
+            StartCoroutine(StunBaldi(duration));
+        else if (type == CatchType.uiiacat) 
+            StartCoroutine(StunUiia(duration));
+        else if (type == CatchType.oggy) 
+            StartCoroutine(StunOggy(duration));
     }
 
     public void StunnerOnEquip()
@@ -249,12 +306,12 @@ public class PowerSystem : MonoBehaviour
 
     private IEnumerator StunTheMap()
     {
-        float duration = 3.5f;
+        float duration = 5f;
         float startTime = Time.time;
         
         // Adjust these to control the pacing
-        float startDelay = 0.20f; // Starts fast (5 times a second)
-        float endDelay = 0.01f;   // Ends incredibly fast (100 times a second)
+        float startDelay = 0.30f; // Starts fast (5 times a second)
+        float endDelay = 0.1f;   // Ends incredibly fast (100 times a second)
         
         bool toggleSwitch = true;
 
@@ -302,7 +359,7 @@ public class PowerSystem : MonoBehaviour
         ChangeMapShader(pacManModeShader);
 
 
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(powerDot.duration -2f);
 
          Shader.SetGlobalFloat("_FrightenedFlash", 1f);
 
@@ -362,9 +419,7 @@ public class PowerSystem : MonoBehaviour
         prisonRealmHeartbeat.Play();
         Debug.Log("Prison Realm Activated");
 
-        yield return new WaitForSeconds(10f);
-
-        EndPrisonRealmEffect();
+        yield return null;
     }
 
     void EndPrisonRealmEffect()
@@ -391,6 +446,7 @@ public class PowerSystem : MonoBehaviour
             {
                 capturedEnemy = baldi;
                 baldiEnemy.baldiBaseSpeed *= 1.2f;
+                isBaldiImprisoned = true;
                 Debug.Log("Baldi");
             }
         else if (type == CatchType.uiiacat)
@@ -449,14 +505,79 @@ public class PowerSystem : MonoBehaviour
         EndPrisonRealmEffect();
     }
 
+    public void UsePowerUp()
+    {
+        if (currentPower == null || currentPower.Effect == null) return;
+        if (gameManager.isDead) return;
+        
+        // Prevent using if already active or recharging
+        if (isRecharging || isPowerActive) return; 
+
+        StartCoroutine(currentPower.Effect());
+
+        // If it has a duration, start the active timer
+        if (currentPower.duration > 0f)
+        {
+            isPowerActive = true;
+            currentActiveTime = 0f;
+            currentPowerIcon.enabled = false; 
+
+            rechargeCircle.enabled = true;
+        }
+        // If no duration, but it's reusable, jump straight to cooldown
+        else if (currentPower.isReusable && currentPower.rechargeTime > 0f)
+        {
+            StartCooldown(); 
+            // Note: StartCooldown() already has currentPowerIcon.enabled = false;
+        }
+        // If no duration and not reusable, de-equip immediately
+        else if (!currentPower.isReusable)
+        {
+            
+            EquipPower(deEquipPower);
+        }
+    }
+
+    // Helper function to keep things clean
+    private void StartCooldown()
+    {
+        isRecharging = true;
+        currentCooldown = 0f;
+        currentPowerIcon.enabled = false; 
+
+        rechargeCircle.enabled = true;
+    }
+
     void Update()
     {
-        if (isRecharging)
+        // --- UI TIMER LOGIC ---
+        if (isPowerActive)
         {
-            // Increase timer based on real time
-            currentCooldown += Time.deltaTime;
+            currentActiveTime += Time.deltaTime;
+            
+            // Empties the circle over time (1.0 to 0.0)
+            rechargeCircle.fillAmount = 1f - (currentActiveTime / currentPower.duration);
 
-            // Calculate fill amount (0.0 to 1.0)
+            if (currentActiveTime >= currentPower.duration)
+            {
+                isPowerActive = false;
+                
+                // Check what to do after the power ends
+                if (currentPower.isReusable && currentPower.rechargeTime > 0f)
+                {
+                    StartCooldown();
+                }
+                else if (!currentPower.isReusable)
+                {
+                    EquipPower(deEquipPower);
+                }
+            }
+        }
+        else if (isRecharging)
+        {
+            currentCooldown += Time.deltaTime;
+            
+            // Fills the circle back up over time (0.0 to 1.0)
             rechargeCircle.fillAmount = 1 - currentCooldown / currentPower.rechargeTime;
 
             if (currentCooldown >= currentPower.rechargeTime)
@@ -464,20 +585,22 @@ public class PowerSystem : MonoBehaviour
                 currentCooldown = 0f;
                 isRecharging = false;
                 currentPowerIcon.enabled = true;
+
+                rechargeCircle.enabled = false;
+
                 Debug.Log("Recharge Complete!");
             }
         }
 
-       if ((Input.GetKeyDown(KeyCode.Q) || Input.GetMouseButtonDown(1)) && currentPower != null)
+
+        if (player_Controller.currentDevice == player_controller.TargetDevice.PC)
         {
-            // so cant be activated when already dead
-            if (gameManager.isDead) return;
+            powerUpInput = (Input.GetKeyDown(KeyCode.Q) || Input.GetMouseButtonDown(1));
+        } 
 
-            if (isRecharging) return;
-            StartCoroutine(currentPower.Effect());
-
-            if (!currentPower.isReusable)
-            currentPower.AssignPower(deEquipPower);
+       if (powerUpInput)
+        {
+           UsePowerUp();
         } 
 
         // Loop BACKWARDS so we can safely remove enemies as they are released
@@ -490,6 +613,10 @@ public class PowerSystem : MonoBehaviour
             {
                 // Set them free!
                 prisoner.Enemy.SetActive(true);
+
+                if (prisoner.Enemy == baldi) 
+                    isBaldiImprisoned = false;
+
                 Debug.Log(prisoner.Enemy.name + " Released Successfully");
 
                 // Remove them from the prison list so we don't keep trying to release them

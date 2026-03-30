@@ -14,7 +14,7 @@ public class LeaderboardManager : MonoBehaviour
     private const string OFFLINE_SCORE_KEY = "PendingOfflineScore";
     private const string OFFLINE_DIFF_KEY = "PendingOfflineDifficulty";
     // To handle version changes
-    private const string GAME_VERSION = "test";
+    private const string GAME_VERSION = "v1";
 
     public static LeaderboardManager Instance { get; private set; }
 

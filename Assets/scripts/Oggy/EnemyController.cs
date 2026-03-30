@@ -17,6 +17,8 @@ public class EnemyController : MonoBehaviour
     public Transform[] patrolPoints;
     private int currentPatrolIndex = 0;
     public PowerSystem powerSystem;
+    public Animator animator;
+    public float baseAnimationSpeed = 2f;
 
     void Start()
     {
@@ -30,6 +32,8 @@ public class EnemyController : MonoBehaviour
         // speed oggy up if he is afar
         if (isStunned) agent.speed = 0f;
          else {agent.speed = oggyBAseSpeed *  (10 + distance)/50; }
+
+        animator.SetFloat("MotionSpeed", agent.speed/baseAnimationSpeed);
 
         // checking if within range
         if (distance <= lookRadius || isEnraged)

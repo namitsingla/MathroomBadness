@@ -15,6 +15,7 @@ public class Collectible : MonoBehaviour
    BaldiEnemy baldiEnemy;
    ExitDoor exitDoor;
    BoostsHandler boostsHandler;
+   PowerSystem powerSystem;
    private bool hasBeenCollected = false;
     void Awake()
     {
@@ -27,6 +28,7 @@ public class Collectible : MonoBehaviour
         baldiEnemy = ReferencesManager.instance.baldiEnemy;
         exitDoor = ReferencesManager.instance.exitDoor;
         boostsHandler = ReferencesManager.instance.boostsHandler;
+        powerSystem = ReferencesManager.instance.powerSystem;
 
     }
 
@@ -38,6 +40,8 @@ public class Collectible : MonoBehaviour
 
     void OnTriggerEnter(Collider other )
     {
+        Debug.Log("Item was touched by: " + other.gameObject.name + " | Tag: " + other.tag);
+
         if (!other.CompareTag("Player")) return;
 
         // If it's already been collected this frame, do nothing.
@@ -58,8 +62,8 @@ public class Collectible : MonoBehaviour
             while (true)
             {
                 int roll = Random.Range(0,100);
-                if (roll<20) 
-                    increaseAmount *= 2;
+                if (roll<15) 
+                    increaseAmount *= boostsHandler.mitosisMultiplier;
                 else 
                     break;
             }
@@ -94,6 +98,7 @@ public class Collectible : MonoBehaviour
             
 
             // sincrease baldi's speed
+            if (!powerSystem.isStunnerActive)
             baldi.GetComponent<NavMeshAgent>().speed = baldiEnemy.baldiBaseSpeed + baldiEnemy.speedIncrease*collecteddisplay.collected;
 
             musicManager.UpdateBackgroundMusic();  

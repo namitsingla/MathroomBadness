@@ -4,16 +4,18 @@ using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
-    public bool GameIsPaused = false;
+    public static bool GameIsPaused = false;
     public GameObject pauseMenuUI;
     public AudioSource PauseSound;
 
     public AudioSource BGM;
     public AudioSource uiiacatmusic;
     public GameManager gameManager;
+    public RarityManager rarityManager;
     
     void Update()
     {
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (GameIsPaused)
@@ -44,6 +46,8 @@ public class PauseMenu : MonoBehaviour
 
     public void Pause()
     {
+        if (rarityManager.isRewardScreenUp) return;
+        
         pauseMenuUI.SetActive(true);
         Time.timeScale = 0f;
 
@@ -63,6 +67,23 @@ public class PauseMenu : MonoBehaviour
         GameIsPaused = false;
 
         SceneManager.LoadScene(0);
+    }
+
+    void OnApplicationPause(bool pauseStatus)
+    {
+        if (pauseStatus)
+        {
+            Pause();
+        }
+    }
+
+    // This is called when the user clicks away or a popup covers the game
+    void OnApplicationFocus(bool hasFocus)
+    {
+        if (!hasFocus)
+        {
+            Pause();
+        }
     }
 }
 

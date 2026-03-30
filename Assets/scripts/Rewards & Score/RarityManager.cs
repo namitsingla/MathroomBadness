@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine.UI;
+using Unity.VisualScripting;
 
 public enum Rarity
 {
@@ -23,8 +24,11 @@ public class Reward
     public int maxPicks = -1;   // -1 = infinite
     [HideInInspector] public int timesPicked = 0;
 
-    // Rewards to remove when this one is picked
+    [TextArea(3, 5)] // This makes the text box bigger in the Unity Inspector
+    public string description;
+
     public List<string> removesOnPickNames;
+    public List<string> prerequisites; 
 }
 
 public class RarityManager : MonoBehaviour
@@ -34,6 +38,12 @@ public class RarityManager : MonoBehaviour
     public Button[] rewardButtons;
     public TMP_Text[] rewardTexts; 
     public Image[] rewardIcons;
+    public RewardTooltipTrigger[] infoButtonTriggers; 
+    public GameObject tooltipPanel;    // The background panel for the tooltip
+    public TMP_Text tooltipText;       // The text component inside the panel
+    public RectTransform tooltipRect;
+    public Image tooltipBorder; 
+    public Vector2 tooltipOffset = new Vector2(15f, -15f);
     public List<Reward> rewards;
 
 
@@ -50,6 +60,26 @@ public class RarityManager : MonoBehaviour
     [Header("Variables")]
     public bool isSpinning = false;
     private int activeSpins = 0;
+    public bool isRewardScreenUp = false;
+
+
+    [Header("Reward History")]
+    public List<string> claimedRewardNames = new List<string>();
+    private bool IsRewardUnlocked(Reward reward)
+    {
+        if (reward.prerequisites == null || reward.prerequisites.Count == 0)
+            return true;
+
+        foreach (string req in reward.prerequisites)
+        {
+            if (!claimedRewardNames.Contains(req))
+            {
+                return false;
+            }
+        }
+
+        return true; 
+    }
 
 
     [Header("Sound Effects")]
@@ -69,6 +99,31 @@ public class RarityManager : MonoBehaviour
     public GameObject rewardButtonsUI;
     public PowerSystem powerSystem;
 
+
+    public void ShowTooltip(Reward reward)
+    {
+        tooltipPanel.SetActive(true);
+        tooltipText.text = reward.description;
+        
+        if (tooltipBorder != null)
+        {
+            tooltipBorder.color = GetRarityColor(reward.rarity);
+        }
+    }
+
+    public void HideTooltip()
+    {
+        tooltipPanel.SetActive(false);
+    }
+
+    void Update()
+    {
+        // If the tooltip is visible, lock its position to the mouse + offset
+        if (tooltipPanel != null && tooltipPanel.activeSelf)
+        {
+            tooltipRect.position = Input.mousePosition + (Vector3)tooltipOffset;
+        }
+    }
 
     public void UpdateRarityDrops(int collected)
     {
@@ -140,7 +195,15 @@ public class RarityManager : MonoBehaviour
 
         isSpinning = true;
 
-        List<Reward> tempPool = new List<Reward>(rewards);
+        List<Reward> tempPool = new List<Reward>();
+        foreach (Reward r in rewards)
+        {
+            if (IsRewardUnlocked(r))
+            {
+                tempPool.Add(r);
+            }
+        }
+
         Reward[] finalRewards = new Reward[rewardCount];
 
         // First decide all rewards
@@ -181,27 +244,19 @@ public class RarityManager : MonoBehaviour
 
     void ButtonColor(Rarity rarity, int i)
     {
+        rewardButtons[i].image.color = GetRarityColor(rarity);
+    }
+
+    public Color GetRarityColor(Rarity rarity)
+    {
         switch(rarity)
         {
-            case Rarity.Common:
-                rewardButtons[i].image.color = new Color32(80, 200, 120, 255);;
-                break;
-
-            case Rarity.Rare:
-                rewardButtons[i].image.color = new Color32(65, 140, 255, 255);
-                break;
-
-            case Rarity.Epic:
-                rewardButtons[i].image.color = new Color32(200, 70, 255, 255);
-                break;
-
-            case Rarity.Cursed:
-                rewardButtons[i].image.color = new Color32(140, 20, 30, 255);
-                break;
-
-            case Rarity.Legendary:
-                rewardButtons[i].image.color = new Color32(217, 217, 49, 255);
-                break;
+            case Rarity.Common: return new Color32(80, 200, 120, 255);
+            case Rarity.Rare: return new Color32(65, 140, 255, 255);
+            case Rarity.Epic: return new Color32(200, 70, 255, 255);
+            case Rarity.Cursed: return new Color32(140, 20, 30, 255);
+            case Rarity.Legendary: return new Color32(217, 217, 49, 255);
+            default: return Color.white;
         }
     }
 
@@ -212,6 +267,12 @@ public class RarityManager : MonoBehaviour
         Debug.Log("Picked: " + reward.name);
 
         reward.timesPicked += 1;
+
+        // add name to history 
+        if (!claimedRewardNames.Contains(reward.name))
+        {
+            claimedRewardNames.Add(reward.name);
+        }
 
         // Remove if max reached
         if (reward.maxPicks > 0 && reward.timesPicked >= reward.maxPicks)
@@ -239,15 +300,15 @@ public class RarityManager : MonoBehaviour
         // Apply effect later
         switch(reward.name)
         {
-            case "Speed Increase":
+            case "Running Shoes":
                 boostsHandler.SpeedIncrease();
                 break;
 
-            case "Multiplier Increase":
+            case "Coefficient Boost":
                 boostsHandler.MultiplierIncrease();
                 break;
 
-            case "Vision Increase":
+            case "Binoculars":
                 boostsHandler.VisionIncrease();
                 break;
 
@@ -255,7 +316,7 @@ public class RarityManager : MonoBehaviour
                 boostsHandler.MinimapIncrease();
                 break;
 
-            case "Slow Down Enemies":
+            case "Paint Spill":
                 boostsHandler.SlowDownEnemies();
                 break;
 
@@ -307,7 +368,7 @@ public class RarityManager : MonoBehaviour
                 boostsHandler.TimeSpeedUp();
                 break;
 
-            case "Increase Item Spawn Rate":
+            case "Hallway Litter":
                 boostsHandler.IncreaseItemSpawnRate();
                 break;
 
@@ -331,6 +392,10 @@ public class RarityManager : MonoBehaviour
                 boostsHandler.Mitosis();
                 break;
 
+            case "Meiosis":
+                boostsHandler.Meiosis();
+                break;
+
             case "High Stakes":
                 boostsHandler.HighStakes();
                 break;
@@ -346,17 +411,26 @@ public class RarityManager : MonoBehaviour
             case "Loaded Dice":
                 boostsHandler.LoadedDice();
                 break;
+
+            case "Ferromagnetism":
+                boostsHandler.PassiveMagnet();
+                break;
+
+            case "Shukaku":
+                boostsHandler.ShukakuTurnOn();
+                break;
         }
 
         // Hide UI
         rewardButtonsUI.SetActive(false);
         rewardsUI.SetActive(false);
+        HideTooltip();
         Time.timeScale = gameManager.gameSpeed;
         BGM.UnPause();
         Cursor.lockState = CursorLockMode.Locked;
         collectedisplay.mult += 0.1f;
         
-        StartCoroutine(powerSystem.StunAllEnemies());
+        StartCoroutine(powerSystem.StunAllEnemies(5f));
 
         if (boostsHandler.ifRandomPowerUpEachRound)
         {
@@ -369,6 +443,8 @@ public class RarityManager : MonoBehaviour
 
         gameManager.round += 1;
         collectedisplay.UpdateDisplay();
+
+        isRewardScreenUp = false;
 
     }
 
@@ -440,6 +516,7 @@ public class RarityManager : MonoBehaviour
         rewardTexts[slotIndex].text = finalReward.name;
         rewardIcons[slotIndex].sprite = finalReward.icon;
         ButtonColor(finalReward.rarity, slotIndex);
+        infoButtonTriggers[slotIndex].currentReward = finalReward;
 
         rewardButtons[slotIndex].interactable = true;
 
