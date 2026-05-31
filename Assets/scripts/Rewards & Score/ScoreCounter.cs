@@ -287,6 +287,6 @@ public class ScoreCounter : MonoBehaviour
 
         totalScoreText.transform.localScale = Vector3.one;
 
-        rarityManager.StartCoroutine(rarityManager.GenerateRewards());
+        rarityManager.isReadyToShowRewards = true;
     }
 }

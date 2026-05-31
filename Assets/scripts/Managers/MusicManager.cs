@@ -4,7 +4,6 @@ using System.Collections;
 public class MusicManager : MonoBehaviour
 {
     public AudioSource backgroundSource;
-    public BaldiEnemy baldiEnemy;
     public collectedisplay collectedisplay;
     public AudioClip[] songs; // assign all your songs here
     public bool isEnragedMusicOn = false;
@@ -20,7 +19,12 @@ public class MusicManager : MonoBehaviour
             dif = 4;
 
         // for rage mode music 
-        if (baldiEnemy.isEnraged)
+        bool isBaldiEnraged = true;
+            foreach (BaldiEnemy baldi in EnemyManager.instance.GetAllEnemiesOfType<BaldiEnemy>())
+                if (!baldi.isEnraged)
+                    isBaldiEnraged = false;
+
+        if (isBaldiEnraged)
         {
             if (isEnragedMusicOn) return;
 

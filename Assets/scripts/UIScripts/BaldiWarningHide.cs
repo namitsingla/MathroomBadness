@@ -2,14 +2,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using NUnit.Framework;
 
 public class BaldiWarningHide : MonoBehaviour
 {
     public collectedisplay collecteddisplay;
     public TextMeshProUGUI messageText;
-    public GameObject baldi;
-    public GameObject uiiacat;
-    public GameObject oggy;
     public Image baldi_frown;
     public Image baldi_talk;
     public Image baldi_rotate;
@@ -23,10 +21,6 @@ public class BaldiWarningHide : MonoBehaviour
     private Coroutine typingCoroutine;
     
     // OPTIMIZATION 1: Cache your components so you aren't using GetComponent every frame
-    private BaldiEnemy baldiScript;
-    private EnemyController oggyScript;
-    private UIIAController uiiacatScript;
-    private UnityEngine.AI.NavMeshAgent uiiacatAgent;
 
     // OPTIMIZATION 2: Cache your wait times to prevent memory garbage collection spikes
     private WaitForSeconds standardDelay;
@@ -55,9 +49,6 @@ public class BaldiWarningHide : MonoBehaviour
         new Quote("I have graded these papers before!", 40),
         new Quote("I’ll take a notebook… \nand grade it.", 40),
         new Quote("What kind of problems are your type?", 40),
-        new Quote("Player I, what is this behaviour?", 40),
-        new Quote("call cru cya bacha?", 30),
-        new Quote("TATAKAI!!!", 55),
         new Quote("Throughout halls and classrooms… \nI alone grade the answers. ", 40),
         new Quote("This classroom shall know decimals. ", 40),
         new Quote("Hakuna Mistaka.", 60),
@@ -134,9 +125,9 @@ public class BaldiWarningHide : MonoBehaviour
         new Quote("And in that moment, I swear... \nyour answer was infinite. \nAnd wrong.", 35),
         new Quote("I love The Smiths. \nBut I absolutely hate your math.", 45),
         new Quote("I just woke up one day and I knew... \nthat you were going to fail.", 40),
-        new Quote("You didn't think anyone actually noticed your bad grades. \nBut I did.", 40),
+        new Quote("You didn't think anyone \nactually noticed your bad grades. \nBut I did.", 40),
         new Quote("I know these will all be stories someday, \nbut right now, you're failing.", 35),
-        new Quote("The opportunity to pass was dangling right in front of your eyes!", 45),
+        new Quote("The opportunity to pass was dangling \nright in front of your eyes!", 45),
         new Quote("I am the god of matchmaking... \nyour terrible math with a failing grade.", 35),
         new Quote("I've been watching you from \nthe proxy-proxy-proxy dimension, \nand you're still wrong.", 35),
         new Quote("I know who the real killer is... \nit's your terrible long division.", 40),
@@ -198,7 +189,9 @@ public class BaldiWarningHide : MonoBehaviour
         new Quote("Makima is watching... \nand she is deeply disappointed.", 40),
         new Quote("If you were a Hashira, \nyou'd be the Pillar of Stupidity.", 45),
         new Quote("Cosplaying as a good student \nwon't make you one.", 45),
-        new Quote("You wuv this? \nWell, I wuv giving you an F.", 45)
+        new Quote("You wuv this? \nWell, I wuv giving you an F.", 45),
+        new Quote("You thought you could run forever?\nEven light has a speed limit.", 40),
+        new Quote("Your answer is imaginary.\nUnfortunately, the F is very real.", 40)
     };
 
     private readonly Quote[] chalkQuotes = new Quote[]
@@ -245,7 +238,6 @@ public class BaldiWarningHide : MonoBehaviour
         new Quote("Null pointer exception: Intelligence not found.", 45),
         new Quote("You're running away again, \naren't you?", 50),
         new Quote("Do not fear the test. \nFear me.", 55),
-        new Quote("I will show you the true power of the Uchiha... \nI mean, Mathematics.", 40),
         new Quote("You just dug straight down \ninto an F.", 45),
         new Quote("Not even a Totem of Undying \ncan save your GPA.", 40),
         new Quote("Soft kitty, warm kitty, \nlittle ball of failure.", 45),
@@ -337,20 +329,12 @@ public class BaldiWarningHide : MonoBehaviour
         new Quote("Logical fallacy detected \nin your geometry!", 50),
         new Quote("Talk no Jutsu won't save you \nfrom a failing grade.", 45),
         new Quote("Wake up to reality... \nyou failed the exam.", 50),
-        new Quote("This is my ninja way: \ngiving you a zero.", 45)
+        new Quote("This is my ninja way: \ngiving you a zero.", 45),
+        new Quote("Congratulations.\nYou have achieved a \nnew local minimum.", 45)
     };
 
     void Start()
     {
-        // Grab the references once at the start of the game
-        if (baldi != null) baldiScript = baldi.GetComponent<BaldiEnemy>();
-        if (oggy != null) oggyScript = oggy.GetComponent<EnemyController>();
-        if (uiiacat != null)
-        {
-            uiiacatScript = uiiacat.GetComponent<UIIAController>();
-            uiiacatAgent = uiiacat.GetComponent<UnityEngine.AI.NavMeshAgent>();
-        }
-
         // Initialize the wait times once
         standardDelay = new WaitForSeconds(typingSpeed);
         punctuationDelay = new WaitForSeconds(0.25f);
@@ -380,29 +364,33 @@ public class BaldiWarningHide : MonoBehaviour
 
     public void WarningNumber(GameObject item)
     {
+        bool isBaldiImprisoned = EnemyManager.instance.IsImprisoned(EnemyManager.instance.baldiTag);
+
         if (item.CompareTag("Homework"))
         {
-            if (collecteddisplay.homework >= 4 && !baldiScript.isEnraged)
+            bool isBaldiEnraged = EnemyManager.instance.GetAllEnemiesOfType<BaldiEnemy>()
+                .TrueForAll(b => b.isEnraged);
+
+            if (collecteddisplay.homework >= 4 && !isBaldiEnraged)
             {
                 messageText.text = "*strikes*";
                 messageText.fontSize = 120;
 
-                if (!powerSystem.isBaldiImprisoned)
+                if (!isBaldiImprisoned)
                     baldi_frown.enabled = true;
                 else
                     prisonRealmImage.enabled = true;
 
-                baldiScript.lookRadius = 1000f;
-                baldiScript.isEnraged = true;
+                // use Enrage() instead of directly setting fields
+                EnemyManager.instance.EnrageAllOfType<BaldiEnemy>(true);
             }
             else
             {
-                // Grab a random quote from the array
                 Quote q = homeworkQuotes[Random.Range(0, homeworkQuotes.Length)];
                 messageText.text = q.text;
                 messageText.fontSize = q.fontSize;
 
-                if (!powerSystem.isBaldiImprisoned)
+                if (!isBaldiImprisoned)
                     baldi_talk.enabled = true;
                 else
                     prisonRealmImage.enabled = true;
@@ -410,31 +398,27 @@ public class BaldiWarningHide : MonoBehaviour
         }
         else if (item.CompareTag("Chalk"))
         {
-            if (collecteddisplay.chalk >= 4 && !oggyScript.isEnraged)
+            bool isUiiaEnraged = EnemyManager.instance.GetAllEnemiesOfType<UIIAController>()
+                .TrueForAll(u => u.isEnraged);
+
+            if (collecteddisplay.chalk >= 4 && !isUiiaEnraged)
             {
                 messageText.text = "*meow*";
                 messageText.fontSize = 120;
                 RectTransform rt = messageText.rectTransform;
                 rt.anchoredPosition = new Vector2(0f, rt.anchoredPosition.y);
 
-                oggyScript.lookRadius = 500f;
-                oggyScript.isEnraged = true;
-
-                if (!uiiacatScript.isEnraged)
-                {
-                    uiiacatScript.isEnraged = true;
-                    uiiacatAgent.speed *= 1.5f;
-                    uiiacatScript.wallLifetime *= 1.5f;
-                }
+                // enrage all UIIAs and Oggys
+                EnemyManager.instance.EnrageAllOfType<UIIAController>(true);
+                EnemyManager.instance.EnrageAllOfType<EnemyController>(true);
             }
             else
             {
-                // Grab a random quote from the array
                 Quote q = chalkQuotes[Random.Range(0, chalkQuotes.Length)];
                 messageText.text = q.text;
                 messageText.fontSize = q.fontSize;
-                
-                if (!powerSystem.isBaldiImprisoned)
+
+                if (!isBaldiImprisoned)
                     baldi_rotate.enabled = true;
                 else
                     prisonRealmImage.enabled = true;
@@ -444,11 +428,8 @@ public class BaldiWarningHide : MonoBehaviour
         fullText = messageText.text;
         messageText.maxVisibleCharacters = 0;
 
-        // Stop the previous typing effect if it's still running
         if (typingCoroutine != null)
-        {
             StopCoroutine(typingCoroutine);
-        }
 
         typingCoroutine = StartCoroutine(TypeText());
     }

@@ -1,136 +1,127 @@
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UI;
 using System.Collections;
 
-
-public class BaldiEnemy : MonoBehaviour
+public class BaldiEnemy : BaseEnemy
 {
-    public float lookRadius = 150f;
-
-    public NavMeshAgent agent;
-    public Transform target; 
-    public GameManager targetScript;
-
-    public float moveDuration = 1f; 
-    public float pauseDuration = 2f;
-
-     private bool isMoving = true;
-    private float timer;
-    public bool isEnraged = false;
-    public float baldiBaseSpeed = 70f;
+    [Header("Baldi Specific")]
     public float speedIncrease = 15f;
-    
-    //for patrolling
-    public Transform[] patrolPoints;
-    private int currentPatrolIndex = 0;
+    public float baldiBaseSpeed = 70f;
+    BaldiLookAnimation baldiLookAnimation;
+    DialogueSoundManager dialogueSoundManager;
+    private static bool firstDetection = false;
+    private float timer;
+    public float pauseDuration = 2f;
+    public float moveDuration = 1f;
+    private bool isMoving = true;
 
-    //for baldi look animation
-    public BaldiLookAnimation baldiLookAnimation;
-    //for death
-    public CatchType catchType = CatchType.baldi;
-    //for first detection audio clip
-    private bool firstDetection = false;
-    public DialogueSoundManager dialogueSoundManager;
-    public PowerSystem powerSystem;
-    void Start()
+    protected override void Awake()
     {
-        agent = GetComponent<NavMeshAgent>();
+        base.Awake();
+        catchType = CatchType.baldi;
+        timer = moveDuration;
+        dialogueSoundManager = ReferencesManager.instance.dialogueSoundManager;
+        baldiLookAnimation = ReferencesManager.instance.baldiLookAnimation;
+    }
+
+    void OnEnable()
+    {
+        // read base speed fresh each time it's spawned from pool
+        baseSpeed = baldiBaseSpeed;
+        agent.speed = baseSpeed;
+    }
+
+    protected override void Update()
+    {
+        if (isStunned)
+        {
+            agent.isStopped = true;
+            return;
+        }
+        HandleMovement();
+    }
+
+    protected override void HandleMovement()
+    {
+        Vector3 lookDirection = target.position - transform.position;
+        lookDirection.y = 0;
+        if (lookDirection != Vector3.zero)
+            transform.rotation = Quaternion.LookRotation(lookDirection);
+
+        // enraged = skip stop/start, always chase
+        if (isEnraged)
+        {
+            agent.isStopped = false;
+            agent.SetDestination(target.position);
+            return;
+        }
+
+        timer -= Time.deltaTime;
+
+        if (isMoving && timer <= 0f)
+        {
+            agent.isStopped = true;
+            isMoving = false;
+        }
+
+        if (!isMoving) return;
+
+        if (CanSeePlayer())
+        {
+            if (!firstDetection && Vector3.Distance(target.position, transform.position) <= 60f)
+            {
+                firstDetection = true;
+                StartCoroutine(dialogueSoundManager.PlayBaldiFirstDetection());
+            }
+            agent.SetDestination(target.position);
+        }
+        else if (!agent.hasPath || agent.remainingDistance < 1f)
+        {
+            GoToRandomPatrolPoint();
+            baldiLookAnimation.baldiLook();
+        }
+    }
+
+    public override void Enrage()
+    {
+        if (isEnraged) return;
+        isEnraged = true;
+        baldiBaseSpeed *= 1.2f;
+        baseSpeed = baldiBaseSpeed;
+        agent.speed = baldiBaseSpeed;
+        lookRadius = 1000f;
+        agent.isStopped = false;
+        isMoving = true;
+    }
+
+    public override void UnEnrage()
+    {
+        isEnraged = false;
+        baldiBaseSpeed /= 1.2f;
+        baseSpeed = baldiBaseSpeed;
+        agent.speed = baldiBaseSpeed;
+        lookRadius = 60f;
+    }
+
+    public void ResumeMoving()
+    {
+        agent.isStopped = false;
+        isMoving = true;
         timer = moveDuration;
     }
 
-    void Update()
+    public override void ResetEnemy()
     {
-        // face the player at all times
-        Vector3 lookDirection = target.position - transform.position;
-        lookDirection.y = 0; // ignore vertical tilt
-        if (lookDirection != Vector3.zero)
-        {
-            transform.rotation = Quaternion.LookRotation(lookDirection);
-        }
-
-        //checking if within range
-        float distance = Vector3.Distance(target.position, transform.position);
-        timer -= Time.deltaTime;
-        
-        if (isMoving)
-                    {
-                        if (timer <= 0f)
-                        {
-                            // stop moving
-                            agent.isStopped = true;
-                            isMoving = false;
-                            timer = pauseDuration;
-                        }
-                    }
-                    // else
-                    // {
-                    //     if (timer <= 0f)
-                    //     {
-                    //         // resume moving
-                    //         agent.isStopped = false;
-                    //         isMoving = true;
-                    //         timer = moveDuration;
-                    //     }
-                    // }
-
-        if (distance <= lookRadius || isEnraged)
-        {
-            Vector3 direction = (target.position - transform.position).normalized;
-
-            if (Physics.Raycast(transform.position, direction, out RaycastHit hit, lookRadius) || isEnraged)
-            {
-                if (hit.collider.CompareTag("Player") || isEnraged)
-                {
-                   if (!firstDetection && distance <= 60f)
-                    {
-                        firstDetection = true;
-                        StartCoroutine(dialogueSoundManager.PlayBaldiFirstDetection());
-                        Debug.Log("Player detected.");
-                    }
-
-                    //set target
-                    if (target != null)
-                        agent.SetDestination(target.position);
-
-                } 
-            }
-        }
-        //to set agent to patrolling
-        if (!isEnraged && !agent.hasPath || agent.remainingDistance < 1f)
-        {
-            GoToRandomPoint();
-        }
+        base.ResetEnemy();
+        if (isEnraged) UnEnrage();
+        isMoving = true;
+        timer = moveDuration;
+        baseSpeed = baldiBaseSpeed;
+        agent.speed = baseSpeed;
     }
 
-void GoToRandomPoint()
+    public void UpdateSpeed(int collectedCount)
     {
-
-        currentPatrolIndex = Random.Range(0, patrolPoints.Length);
-        agent.SetDestination(patrolPoints[currentPatrolIndex].position);
-        //Debug.Log("Set a new patrol point for Baldi");
-        baldiLookAnimation.baldiLook();
-    }
-
-public void ResumeMoving()
-{
-    //resume moving
-    agent.isStopped = false;
-    isMoving = true;
-    timer = moveDuration;
-}
-
-private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            if (powerSystem.isPowerDotOn)
-            {
-                powerSystem.StartCoroutine(powerSystem.PowerDotTeleport(agent));
-                return;
-            }
-
-            targetScript.KhelKhatam(transform, catchType);
-        }
+        agent.speed = baldiBaseSpeed + speedIncrease * collectedCount;
     }
 }

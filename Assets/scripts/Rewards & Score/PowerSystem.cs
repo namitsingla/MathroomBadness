@@ -66,14 +66,14 @@ public class PowerSystem : MonoBehaviour
     public AudioSource teleporterAudio;
     public AudioSource stunnerAudio;
     public AudioSource prisonRealmHeartbeat;
-    public AudioSource prisonRealmCapturedSound;
+    public AudioSource wallBreakSound;
 
 
     [Header("Power Specific Refrences")]
     public GameObject invincibilityShieldOverlay;
     public Shader pacManModeShader;
-    public Shader prisonRealmShader;
     public GameObject priosnRealmCaughtImage;
+    public PrisonRealmSealer prisonRealmSealer;
 
     [Header("Variables")]
     public bool isPowerDotOn = false;
@@ -83,31 +83,43 @@ public class PowerSystem : MonoBehaviour
     private float currentActiveTime = 0f;
     public bool isPrisonRealmActive = false;
     public bool isStunnerActive = false;
-    public List<PrisonData> imprisonedEnemies = new List<PrisonData>();
-    public bool isBaldiImprisoned = false;
     private bool powerUpInput = false;
+    public bool isSealingInProgress = false;
+
+    [Header("Global Domain Settings")]
+    public Transform playerTransform;
+    public float maxRadius = 150f;
+    public float expansionTime = 2.5f;
+    public float collapseSpeed = 250f; 
+
+    [Header("Domain Materials")]
+    public Material pacmanMaterial;
+    public Material prisonRealmMaterial;
+    public Material wireframeMaterial;
+    private float currentRadius = 0f;
+    private float activeTimer = 0f; 
+    private float targetSustainDuration = 0f; // Stores how long to hold it AFTER it expands
+    private Material activeMaterial; 
+
+    private enum DomainState { Inactive, Expanding, Sustaining, Collapsing }
+    private DomainState currentState = DomainState.Inactive;
+
+    private int playerPosID;
+    private int effectRadiusID;
 
 
     [Header("References")]
     public GameManager gameManager;
     public UniversalRendererData rendererData;
     public SpawnManager spawnManager; 
-    public UnityEngine.AI.NavMeshAgent baldiNavMesh;
-    public UnityEngine.AI.NavMeshAgent uiiaNavMesh;
-    public EnemyController enemyController;
-    public BaldiEnemy baldiEnemy;
     public collectedisplay collectedisplay;
-    public AudioSource uiiaCatAudio;
     public AudioSource BGM;
-    public UIIAController uIIAController;
     public Material[] mapMaterials;
     Shader urpLit;
     public RenderPipelineAsset URP_Low;
     public Image rechargeCircle;
-    public GameObject baldi;
-    public GameObject oggy;
-    public GameObject uiiaCat;
     public player_controller player_Controller;
+    public EnemyManager enemyManager;
 
 
     void Awake()
@@ -132,7 +144,7 @@ public class PowerSystem : MonoBehaviour
         stunner.onEquip = StunnerOnEquip;
         stunner.isReusable = true;
         stunner.duration = 5f;
-        // stunner.rechargeTime = 20f;
+        stunner.rechargeTime = 20f;
 
         powerDot = new Power();
         powerDot.Effect =  PowerDotEffect;
@@ -149,8 +161,15 @@ public class PowerSystem : MonoBehaviour
         prisonRealm = new Power();
         prisonRealm.Effect = PrisonRealmEffect;
         prisonRealm.onEquip = PrisonRealmOnEquip;
+        prisonRealm.duration = 15f;
         //prisonRealm.isReusable = true;
         
+
+        playerPosID = Shader.PropertyToID("_PlayerPosition");
+        effectRadiusID = Shader.PropertyToID("_EffectRadius");
+
+        // 1. Safety first: Force all domains to 0 radius at the start
+        ResetAllDomains();
 
         EquipPower(powerDot);
         ChangeMapShader(urpLit);
@@ -183,6 +202,29 @@ public class PowerSystem : MonoBehaviour
         rechargeCircle.fillAmount = 1f; 
 
         rechargeCircle.enabled = false;
+    }
+
+    public void StartDomain(Material domainMat, float duration)
+    {
+        if (activeMaterial != null && activeMaterial != domainMat)
+        {
+            activeMaterial.SetFloat(effectRadiusID, 0f);
+        }
+
+        activeMaterial = domainMat;
+        currentRadius = 0f;
+        
+        targetSustainDuration = duration; // Save the sustain duration for later
+        activeTimer = 0f; // Reset the timer to 0 to track the expansion phase
+        
+        currentState = DomainState.Expanding; 
+    }
+
+    private void ResetAllDomains()
+    {
+        if (pacmanMaterial != null) pacmanMaterial.SetFloat(effectRadiusID, 0f);
+        if (prisonRealmMaterial != null) prisonRealmMaterial.SetFloat(effectRadiusID, 0f);
+        if (wireframeMaterial != null) wireframeMaterial.SetFloat(effectRadiusID, 0f);
     }
 
 
@@ -239,63 +281,31 @@ public class PowerSystem : MonoBehaviour
 
     IEnumerator StunnerEffect()
     {
+        isStunnerActive = true;
         StartCoroutine(StunAllEnemies(stunner.duration));
         stunnerAudio.Play();
         StartCoroutine(StunTheMap());
 
+        yield return new WaitForSeconds(stunner.duration);
+        isStunnerActive = false;
+
         isRecharging = true;
         currentPowerIcon.enabled = false;
-
-        yield return null;
     }
     public IEnumerator StunAllEnemies(float duration)
     {
-        StartCoroutine(StunBaldi(duration));
-        StartCoroutine(StunOggy(duration));
-        StartCoroutine(StunUiia(duration));
+        enemyManager.StunAllEnemies(duration);
 
         yield return null;
-    }
-
-    public IEnumerator StunBaldi( float duration)
-    {
-        float baldiSpeed = baldiNavMesh.speed;
-        baldiNavMesh.speed = 0f;
-        isStunnerActive = true;
-
-        yield return new WaitForSeconds(duration);
-
-        baldiNavMesh.speed = baldiSpeed;
-        isStunnerActive = false;
-    }
-
-    public IEnumerator StunOggy(float duration)
-    {
-        enemyController.isStunned = true;
-
-        yield return new WaitForSeconds(duration);
-        
-        enemyController.isStunned = false;
-    }
-
-    public IEnumerator StunUiia(float duration)
-    {
-        float uiiaSpeed = uiiaNavMesh.speed;
-        uiiaNavMesh.speed = 0f;
-
-        yield return new WaitForSeconds(duration);
-        
-        uiiaNavMesh.speed = uiiaSpeed;
     }
 
     public void StunHitEnemy(CatchType type, float duration)
     {
-        if (type == CatchType.baldi) 
-            StartCoroutine(StunBaldi(duration));
-        else if (type == CatchType.uiiacat) 
-            StartCoroutine(StunUiia(duration));
-        else if (type == CatchType.oggy) 
-            StartCoroutine(StunOggy(duration));
+        foreach (BaseEnemy enemy in EnemyManager.instance.GetAllEnemies())
+        {
+            if (enemy.catchType == type)
+                enemy.Stun(duration);
+        }
     }
 
     public void StunnerOnEquip()
@@ -354,9 +364,10 @@ public class PowerSystem : MonoBehaviour
         Shader.SetGlobalFloat("_FrightenedAmount", 1f);
         Shader.SetGlobalFloat("_FrightenedFlash", 0f);
         powerDotAudio.Play();
-        uiiaCatAudio.Pause();
+        enemyManager.PauseUIIAMusic();
         BGM.Pause();
-        ChangeMapShader(pacManModeShader);
+        //ChangeMapShader(pacManModeShader);
+        StartDomain(pacmanMaterial, powerDot.duration -3.5f);
 
 
         yield return new WaitForSeconds(powerDot.duration -2f);
@@ -369,9 +380,9 @@ public class PowerSystem : MonoBehaviour
          Shader.SetGlobalFloat("_FrightenedAmount", 0f);
          Shader.SetGlobalFloat("_FrightenedFlash", 0f);
          powerDotAudio.Stop();
-         uiiaCatAudio.UnPause();
+         enemyManager.UnpauseUIIAMusic();
          BGM.UnPause();
-         ChangeMapShader(urpLit);
+         //ChangeMapShader(urpLit);
 
     }
 
@@ -381,7 +392,7 @@ public class PowerSystem : MonoBehaviour
         currentPowerIcon.sprite = powerDotSprite;
     }
 
-    public IEnumerator PowerDotTeleport(UnityEngine.AI.NavMeshAgent enemy)
+    public IEnumerator PowerDotTeleport(BaseEnemy enemy)
     {
         Time.timeScale = 0f;
         powerDotAudio.Pause();
@@ -401,7 +412,10 @@ public class PowerSystem : MonoBehaviour
 
     IEnumerator WallBreakerEffect()
     {
-        uIIAController.DeactivateAllWalls();
+        WallManager.instance.DeactivateAllWalls();
+        
+        wallBreakSound.Play();
+
         yield return null;
     }
 
@@ -414,20 +428,32 @@ public class PowerSystem : MonoBehaviour
     IEnumerator PrisonRealmEffect()
     {
         isPrisonRealmActive = true;
-        ChangeMapShader(prisonRealmShader);
+        //ChangeMapShader(prisonRealmShader);
+        StartDomain(prisonRealmMaterial, prisonRealm.duration - 3.5f);
         BGM.Pause();
         prisonRealmHeartbeat.Play();
         Debug.Log("Prison Realm Activated");
 
-        yield return null;
+        yield return new WaitForSeconds(prisonRealm.duration);
+
+        EndPrisonRealmEffect();
     }
 
     void EndPrisonRealmEffect()
     {
         isPrisonRealmActive = false;
-        ChangeMapShader(urpLit);
+        //ChangeMapShader(urpLit);
+        currentState = DomainState.Collapsing;
+
         BGM.UnPause();
         prisonRealmHeartbeat.Stop();
+
+        // FIX: Only de-equip if the current active power is STILL the Prison Realm
+        if (currentPower != null && currentPower.Effect == prisonRealm.Effect)
+        {
+            EquipPower(deEquipPower);
+        }
+
         Debug.Log("Prison Realm Deactivated");
     }
 
@@ -437,71 +463,25 @@ public class PowerSystem : MonoBehaviour
         currentPowerIcon.sprite = prisonRealmSprite;
     }
 
-    public void EnemyCaughtInPrison(CatchType type) 
+    public void EnemyCaughtInPrison(BaseEnemy captured)
     {
-        GameObject capturedEnemy = null;
-        Debug.Log("Enemy Caught");
+        if (isSealingInProgress) return;
 
-        if (type == CatchType.baldi)
-            {
-                capturedEnemy = baldi;
-                baldiEnemy.baldiBaseSpeed *= 1.2f;
-                isBaldiImprisoned = true;
-                Debug.Log("Baldi");
-            }
-        else if (type == CatchType.uiiacat)
-            {
-                capturedEnemy = uiiaCat;
-                uiiaNavMesh.speed *= 1.2f;
-                Debug.Log("UIIA");
-            }
-        else if (type == CatchType.oggy)
-            {
-                capturedEnemy = oggy;
-                enemyController.oggyBAseSpeed *= 1.2f;
-                Debug.Log("Oggy");
-            }
-
-        if (capturedEnemy != null) 
-        {
-            capturedEnemy.SetActive(false);
-
-            int releasingRound = gameManager.round + 3;
-            Debug.Log(capturedEnemy.name + " imprisoned. Releasing Round is " + releasingRound);
-            imprisonedEnemies.Add(new PrisonData(capturedEnemy, releasingRound));
-
-            StartCoroutine(ShowPrisonRealmCaughtImage());
-        }
+        isSealingInProgress = true;
+        StartCoroutine(SealEnemy(captured));
     }
 
-    IEnumerator ShowPrisonRealmCaughtImage()
+    IEnumerator SealEnemy(BaseEnemy enemy)
     {
-        prisonRealmCapturedSound.Play();
-        AnimationCurve popCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+        isPrisonRealmActive = true;
 
-        priosnRealmCaughtImage.SetActive(true);
-        Vector3 originalScale = priosnRealmCaughtImage.transform.localScale;
+        // use isStunned since Update already respects it
+        enemy.isStunned = true;
 
-        priosnRealmCaughtImage.transform.localScale = Vector3.zero;
-
-        float timeElapsed = 0f;
-
-        while (timeElapsed < 0.7f)
-        {
-            timeElapsed += Time.deltaTime;
-            
-            // Evaluate the curve and apply the multiplier to the scale
-            float curveValue = popCurve.Evaluate(timeElapsed / 0.25f);
-            priosnRealmCaughtImage.transform.localScale = originalScale * curveValue;
-            
-            yield return null; 
-        }
-
-        // Snap to the exact original scale when finished
-        priosnRealmCaughtImage.transform.localScale = originalScale;
-
-        yield return new WaitForSeconds(2.0f);
-        priosnRealmCaughtImage.SetActive(false);
+        yield return StartCoroutine(prisonRealmSealer.ExecuteSealAndWait(enemy.transform));
+        
+        EnemyManager.instance.ImprisonEnemy(enemy, gameManager.round);
+        isSealingInProgress = false;
         EndPrisonRealmEffect();
     }
 
@@ -603,24 +583,65 @@ public class PowerSystem : MonoBehaviour
            UsePowerUp();
         } 
 
-        // Loop BACKWARDS so we can safely remove enemies as they are released
-        for (int i = imprisonedEnemies.Count - 1; i >= 0; i--)
+       if (playerTransform != null)
         {
-            PrisonData prisoner = imprisonedEnemies[i];
+            Shader.SetGlobalVector(playerPosID, playerTransform.position);
+        }
 
-            // Check if the current round has reached or passed their release round
-            if (gameManager.round >= prisoner.ReleaseRound)
+        if (activeMaterial != null)
+        {
+            switch (currentState)
             {
-                // Set them free!
-                prisoner.Enemy.SetActive(true);
+                case DomainState.Expanding:
+                    // 1. Count up the timer
+                    activeTimer += Time.deltaTime;
+                    
+                    // 2. Get a percentage of how far along the expansion time we are (0.0 to 1.0)
+                    float t = activeTimer / expansionTime;
+                    
+                    // 3. THE MATH MAGIC (Ease-In Cubic Curve)
+                    // Multiplying t by itself makes the curve start extremely flat, then curve violently upwards.
+                    float easeInT = t * t; 
+                    
+                    // 4. Apply the curve to the radius
+                    currentRadius = Mathf.Lerp(0f, maxRadius, easeInT);
+                    
+                    if (activeTimer >= expansionTime)
+                    {
+                        currentRadius = maxRadius;
+                        currentState = DomainState.Sustaining;
+                        
+                        // Load the actual domain duration timer now that expansion is done!
+                        activeTimer = targetSustainDuration; 
+                    }
+                    
+                    activeMaterial.SetFloat(effectRadiusID, currentRadius);
+                    break;
 
-                if (prisoner.Enemy == baldi) 
-                    isBaldiImprisoned = false;
+                case DomainState.Sustaining:
+                    activeTimer -= Time.deltaTime;
+                    
+                    if (activeTimer <= 0f)
+                    {
+                        currentState = DomainState.Collapsing;
+                    }
+                    break;
 
-                Debug.Log(prisoner.Enemy.name + " Released Successfully");
-
-                // Remove them from the prison list so we don't keep trying to release them
-                imprisonedEnemies.RemoveAt(i);
+                case DomainState.Collapsing: // Left exactly as you requested
+                    currentRadius -= collapseSpeed * Time.deltaTime;
+                    
+                    if (currentRadius <= 0f)
+                    {
+                        currentRadius = 0f;
+                        currentState = DomainState.Inactive;
+                        activeMaterial.SetFloat(effectRadiusID, 0f);
+                        activeMaterial = null; 
+                    }
+                    else
+                    {
+                        activeMaterial.SetFloat(effectRadiusID, currentRadius);
+                    }
+                    break;
             }
         }
     }

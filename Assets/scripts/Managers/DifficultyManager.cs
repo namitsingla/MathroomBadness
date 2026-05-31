@@ -4,104 +4,147 @@ using UnityEngine.Rendering.Universal;
 
 public class DifficultyManager : MonoBehaviour
 {
-    public BaldiEnemy baldiEnemy;
-    public UnityEngine.AI.NavMeshAgent baldiNavMesh;
-    public EnemyController oggyController;
-    public EnemyController oggy;
-    public UIIAController uIIAController;
-    public UnityEngine.AI.NavMeshAgent uiiaNavMesh;
+    public static DifficultyManager instance;
     public SpawnManager spawnManager;
     public GameManager gameManager;
     public Volume globalVolume;
     private SplitToning splitToning;
     private Vignette vignette;
 
+    private bool difficultyApplied = false;
+
     void Awake()
     {
+        instance = this;
         globalVolume.profile.TryGet(out splitToning);
         globalVolume.profile.TryGet(out vignette);
     }
-    void Start()
+
+    public void ApplyDifficultySettings()
     {
-        //easy
-        if (SettingsData.Difficulty == 0)
+        if (difficultyApplied) return;
+        difficultyApplied = true;
+
+        if (SettingsData.Difficulty == 0) ApplyEasyGlobal();
+        if (SettingsData.Difficulty == 2) ApplyHardGlobal();
+        if (SettingsData.Difficulty == 3) ApplyMadnessGlobal();
+    }
+
+    // called for every enemy that spawns so new instances get the right values
+    public void ApplyDifficultyToEnemy(BaseEnemy enemy)
+    {
+        if (!difficultyApplied) return;
+        if (SettingsData.Difficulty == 0) ApplyEasyToEnemy(enemy);
+        if (SettingsData.Difficulty == 2) ApplyHardToEnemy(enemy);
+        if (SettingsData.Difficulty == 3) ApplyMadnessToEnemy(enemy);
+    }
+
+    void ApplyEasyGlobal()
+    {
+        spawnManager.spawnCount += 1;
+        spawnManager.minDistanceFromPlayer *= 0.75f;
+        spawnManager.minDistanceFromOtherSpawns *= 0.75f;
+        spawnManager.minEnemyDistanceFromPlayer *= 1.25f;
+        spawnManager.maxEnemyDistanceFromPlayer *= 1.25f;
+        RenderSettings.fogDensity = 0.025f;
+    }
+
+    void ApplyHardGlobal()
+    {
+        spawnManager.spawnCount -= 1;
+        spawnManager.minDistanceFromPlayer *= 1.25f;
+        spawnManager.minDistanceFromOtherSpawns *= 1.25f;
+        spawnManager.minEnemyDistanceFromPlayer *= 0.67f;
+        spawnManager.maxEnemyDistanceFromPlayer *= 0.9f;
+        RenderSettings.fogDensity = 0.055f;
+    }
+
+    void ApplyMadnessGlobal()
+    {
+        spawnManager.spawnCount -= 2;
+        spawnManager.minDistanceFromPlayer *= 1.25f;
+        spawnManager.minDistanceFromOtherSpawns *= 1.25f;
+        spawnManager.minEnemyDistanceFromPlayer *= 0.25f;
+        spawnManager.maxEnemyDistanceFromPlayer *= 0.9f;
+        RenderSettings.fogDensity = 0.06f;
+        gameManager.lives = 1;
+        SetSplitToning(true);
+    }
+
+    void ApplyEasyToEnemy(BaseEnemy enemy)
+    {
+        enemy.lookRadius *= 0.67f;
+        if (enemy is BaldiEnemy baldi)
         {
-            baldiEnemy.lookRadius *=  0.67f;
-            baldiEnemy.speedIncrease *= 0.67f;
-            baldiNavMesh.speed *= 0.7f;
-
-            oggyController.lookRadius *= 0.67f;
-            oggy.oggyBAseSpeed *= 0.7f;
-
-            uIIAController.lookRadius *= 0.67f;
-            uIIAController.wallLifetime *= 0.5f;
-            uiiaNavMesh.speed *= 0.7f;
-
-            spawnManager.spawnCount += 1;
-            spawnManager.minDistanceFromPlayer *= 0.75f;
-            spawnManager.minDistanceFromOtherSpawns *= 0.75f;
-            spawnManager.minEnemyDistanceFromPlayer *= 1.25f;
-            spawnManager.maxEnemyDistanceFromPlayer *= 1.25f;
-
-            RenderSettings.fogDensity = 0.025f;
+            baldi.baldiBaseSpeed *= 0.7f;
+            baldi.speedIncrease *= 0.67f;
+            baldi.baseSpeed = baldi.baldiBaseSpeed;
+            baldi.agent.speed = baldi.baseSpeed;
         }
-
-        //hard
-        if (SettingsData.Difficulty == 2)
+        else if (enemy is UIIAController uiia)
         {
-            baldiEnemy.lookRadius *=  1.5f;
-            baldiNavMesh.speed *= 1.5f;
-
-            oggyController.lookRadius *= 1.5f;
-            oggy.oggyBAseSpeed *= 1.5f;
-
-            uIIAController.lookRadius *= 1.5f;
-            uIIAController.wallLifetime *= 1.5f;
-            uiiaNavMesh.speed *= 1.5f;
-
-            spawnManager.spawnCount -= 1;
-            spawnManager.minDistanceFromPlayer *= 1.25f;
-            spawnManager.minDistanceFromOtherSpawns *= 1.25f;
-            spawnManager.minEnemyDistanceFromPlayer *= 0.67f;
-            spawnManager.maxEnemyDistanceFromPlayer *= 0.9f;
-
-            RenderSettings.fogDensity = 0.055f;
+            uiia.uiiaBaseSpeed *= 0.7f;
+            uiia.wallLifetime *= 0.5f;
+            uiia.baseSpeed = uiia.uiiaBaseSpeed;
+            uiia.agent.speed = uiia.baseSpeed;
         }
-
-        //madness
-        if (SettingsData.Difficulty == 3)
+        else if (enemy is EnemyController oggy)
         {
-            baldiEnemy.lookRadius *=  2f;
-            baldiNavMesh.speed *= 2f;
+            oggy.oggyBaseSpeed *= 0.7f;
+            oggy.baseSpeed = oggy.oggyBaseSpeed;
+        }
+    }
 
-            oggyController.lookRadius *= 2f;
-            oggy.oggyBAseSpeed *= 2f;
+    void ApplyHardToEnemy(BaseEnemy enemy)
+    {
+        enemy.lookRadius *= 1.5f;
+        if (enemy is BaldiEnemy baldi)
+        {
+            baldi.baldiBaseSpeed *= 1.5f;
+            baldi.baseSpeed = baldi.baldiBaseSpeed;
+            baldi.agent.speed = baldi.baseSpeed;
+        }
+        else if (enemy is UIIAController uiia)
+        {
+            uiia.uiiaBaseSpeed *= 1.5f;
+            uiia.wallLifetime *= 1.5f;
+            uiia.baseSpeed = uiia.uiiaBaseSpeed;
+            uiia.agent.speed = uiia.baseSpeed;
+        }
+        else if (enemy is EnemyController oggy)
+        {
+            oggy.oggyBaseSpeed *= 1.5f;
+            oggy.baseSpeed = oggy.oggyBaseSpeed;
+        }
+    }
 
-            uIIAController.lookRadius *= 2f;
-            uIIAController.wallLifetime *= 2f;
-            uiiaNavMesh.speed *= 2f;
-
-            spawnManager.spawnCount -= 2;
-            spawnManager.minDistanceFromPlayer *= 1.25f;
-            spawnManager.minDistanceFromOtherSpawns *= 1.25f;
-            spawnManager.minEnemyDistanceFromPlayer *= 0.25f;
-            spawnManager.maxEnemyDistanceFromPlayer *= 0.9f;
-
-            RenderSettings.fogDensity = 0.06f;
-            gameManager.lives = 1;
-
-            SetSplitToning(true);
+    void ApplyMadnessToEnemy(BaseEnemy enemy)
+    {
+        enemy.lookRadius *= 2f;
+        if (enemy is BaldiEnemy baldi)
+        {
+            baldi.baldiBaseSpeed *= 2f;
+            baldi.baseSpeed = baldi.baldiBaseSpeed;
+            baldi.agent.speed = baldi.baseSpeed;
+        }
+        else if (enemy is UIIAController uiia)
+        {
+            uiia.uiiaBaseSpeed *= 2f;
+            uiia.wallLifetime *= 2f;
+            uiia.baseSpeed = uiia.uiiaBaseSpeed;
+            uiia.agent.speed = uiia.baseSpeed;
+        }
+        else if (enemy is EnemyController oggy)
+        {
+            oggy.oggyBaseSpeed *= 2f;
+            oggy.baseSpeed = oggy.oggyBaseSpeed;
         }
     }
 
     public void SetSplitToning(bool state)
     {
-        if (splitToning == null)
-            return;
-
+        if (splitToning == null) return;
         splitToning.active = state;
-
-        //increase vighnette
         vignette.intensity.value = Mathf.Clamp01(0.25f);
     }
 }

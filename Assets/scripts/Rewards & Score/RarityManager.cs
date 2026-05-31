@@ -61,6 +61,7 @@ public class RarityManager : MonoBehaviour
     public bool isSpinning = false;
     private int activeSpins = 0;
     public bool isRewardScreenUp = false;
+    public bool isReadyToShowRewards = false;
 
 
     [Header("Reward History")]
@@ -421,31 +422,11 @@ public class RarityManager : MonoBehaviour
                 break;
         }
 
-        // Hide UI
         rewardButtonsUI.SetActive(false);
-        rewardsUI.SetActive(false);
         HideTooltip();
-        Time.timeScale = gameManager.gameSpeed;
-        BGM.UnPause();
-        Cursor.lockState = CursorLockMode.Locked;
-        collectedisplay.mult += 0.1f;
-        
-        StartCoroutine(powerSystem.StunAllEnemies(5f));
-
-        if (boostsHandler.ifRandomPowerUpEachRound)
-        {
-            boostsHandler.GetRandomPowerUp();
-            //Debug.Log("Signal sent");
-        }
-
         rewardScreenMusic.Stop();
-        musicManager.UpdateBackgroundMusic();
 
-        gameManager.round += 1;
-        collectedisplay.UpdateDisplay();
-
-        isRewardScreenUp = false;
-
+        RoundManager.instance.OnRewardPicked(); // replaces all the cleanup
     }
 
     IEnumerator SpinSlot(int slotIndex, Reward finalReward, List<Reward> pool)

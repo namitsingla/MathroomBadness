@@ -9,7 +9,6 @@ public class PauseMenu : MonoBehaviour
     public AudioSource PauseSound;
 
     public AudioSource BGM;
-    public AudioSource uiiacatmusic;
     public GameManager gameManager;
     public RarityManager rarityManager;
     
@@ -36,7 +35,7 @@ public class PauseMenu : MonoBehaviour
 
         // Resuming sounds
         BGM.UnPause();
-        uiiacatmusic.UnPause();
+        EnemyManager.instance.PauseUIIAMusic();
 
         Cursor.lockState = CursorLockMode.Locked;
         PauseSound.Play ();  
@@ -53,7 +52,7 @@ public class PauseMenu : MonoBehaviour
 
         // Pausing sounds
         BGM.Pause();
-        uiiacatmusic.Pause();
+        EnemyManager.instance.UnpauseUIIAMusic();
 
         Cursor.lockState = CursorLockMode.None; // Unlocks the cursor
         PauseSound.Play ();

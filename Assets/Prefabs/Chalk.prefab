@@ -271,6 +271,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   rotationSpeed: 50
+  poolTag: Chalk
 --- !u!114 &7804472891173593749
 MonoBehaviour:
   m_ObjectHideFlags: 0

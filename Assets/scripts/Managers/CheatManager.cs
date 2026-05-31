@@ -6,12 +6,11 @@ public class CheatManager : MonoBehaviour
     private float lastKeyTime;
     private float resetDelay = 1.5f;
     public MusicManager musicManager;
-    public UIIAController uIIAController;
     public GameManager gameManager;
     public player_controller player_Controller;
-    public ExitDoor exitDoor;
     public RarityManager rarityManager;
     public PowerSystem powerSystem;
+    public BoostsHandler boostsHandler;
 
     void Update()
     {
@@ -69,6 +68,13 @@ public class CheatManager : MonoBehaviour
                 gameManager.hasCheated = true;
             }
 
+            if (inputBuffer.Contains("SHUKAKU"))
+            {
+                Shukaku();
+                inputBuffer = "";
+                gameManager.hasCheated = true;
+            }
+
 
         }
 
@@ -91,7 +97,7 @@ public class CheatManager : MonoBehaviour
 
     void Walls()
     {
-        uIIAController.DeactivateAllWalls();
+        WallManager.instance.DeactivateAllWalls();
     }
 
     void ViviiKun()
@@ -112,7 +118,7 @@ public class CheatManager : MonoBehaviour
 
     void PkPkPk()
     {
-        exitDoor.RoundEndSequence();
+        RoundManager.instance.OnRoundEnd();
     }
 
     void ReRoll()
@@ -123,5 +129,10 @@ public class CheatManager : MonoBehaviour
     void PrisonRealm()
     {
         powerSystem.EquipPower(powerSystem.prisonRealm);
+    }
+
+    void Shukaku()
+    {
+        boostsHandler.ShukakuTurnOn();
     }
 }

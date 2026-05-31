@@ -250,6 +250,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   rotationSpeed: 50
+  poolTag: Homework
 --- !u!65 &9219665736504522294
 BoxCollider:
   m_ObjectHideFlags: 0

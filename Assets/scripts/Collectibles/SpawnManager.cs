@@ -1,149 +1,79 @@
 using System.Collections.Generic;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
 {
-   public GameObject homework;
-   public GameObject chalk;
-   public SpawnPoint[] spawnPoints;
-   public Transform player;
+    public SpawnPoint[] spawnPoints;
+    public Transform player;
 
-   public float minDistanceFromPlayer = 100f;
-   public float minDistanceFromOtherSpawns = 80f;
+    public float minDistanceFromPlayer = 100f;
+    public float minDistanceFromOtherSpawns = 80f;
 
-   public UnityEngine.AI.NavMeshAgent baldi;
-   public UnityEngine.AI.NavMeshAgent uiia;
-   public UnityEngine.AI.NavMeshAgent oggy;
+    public float minEnemyDistanceFromPlayer = 200f;
+    public float maxEnemyDistanceFromPlayer = 400f;
 
-   public float minEnemyDistanceFromPlayer = 200f;
-   public float maxEnemyDistanceFromPlayer = 400f;
-
-   List<Vector3> spawnedPositions = new List<Vector3>();
+    List<Vector3> spawnedPositions = new List<Vector3>();
     List<GameObject> spawnedCollectibles = new List<GameObject>();
 
-   private GameObject currentItemToBeSpawned;
+    private string currentItemTag = "Homework";
 
-   public int spawnCount = 4;
-   public int spawnedCount = 0;
+    public int spawnCount = 4;
+    public int spawnedCount = 0;
+    public GameObject playerGameObject;
+    public static SpawnManager instance;
 
-   public Transform baldiTrans;
-   public Transform oggyTrans;
-   public Transform uiiaTrans;
-   public GameObject playerGameObject;
-
-    void Start()
+    void Awake()
     {
-        SpawnAllEnemies();
-
-        currentItemToBeSpawned = homework;
-
-        for (int i = 0; i < spawnCount; i++)
-        {
-            SpawnItem();
-        }
+        instance = this;
+    }
+    
+    // Call this after procedural generation to update spawn points
+    public void CacheSpawnPoints()
+    {
+        spawnPoints = FindObjectsByType<SpawnPoint>(FindObjectsSortMode.None);
+        Debug.Log("Cached " + spawnPoints.Length + " spawn points.");
     }
 
-
-
-   public void SpawnItem()
+    List<SpawnPoint> GetValidItemSpawnPoints()
     {
-        // Reset all spawn points
-        foreach (var sp in spawnPoints)
-            sp.active = true;
+        List<SpawnPoint> valid = new List<SpawnPoint>(spawnPoints);
 
-        // Disable near player
-        foreach (var sp in spawnPoints)
-        {
-            if (Vector3.Distance(sp.transform.position, player.position) < minDistanceFromPlayer)
-                sp.active = false;
-        }
+        valid.RemoveAll(sp =>
+            Vector3.Distance(sp.transform.position, player.position) < minDistanceFromPlayer);
 
-        // Disable near other spawned items
         foreach (var pos in spawnedPositions)
-        {
-            foreach (var sp in spawnPoints)
-            {
-                if (Vector3.Distance(sp.transform.position, pos) < minDistanceFromOtherSpawns)
-                    sp.active = false;
-            }
-        }
+            valid.RemoveAll(sp =>
+                Vector3.Distance(sp.transform.position, pos) < minDistanceFromOtherSpawns);
 
-        // Collect valid points
-        List<SpawnPoint> valid = new List<SpawnPoint>();
-        foreach (var sp in spawnPoints)
-            if (sp.active) valid.Add(sp);
-
-        // Pick random and spawn
-        SpawnPoint chosen;
-
-        if (valid.Count != 0) 
-        {
-            chosen = valid[Random.Range(0, valid.Count)]; 
-            //Debug.Log("Player position: " + player.position);
-            //Debug.Log("Spawned an object at distance " + (int)Vector3.Distance(chosen.transform.position, player.position));
-
-            foreach (var pos in spawnedPositions)
-            {
-                //Debug.Log("Item position: " + pos);
-                //Debug.Log("Distance from said object: " + (int)Vector3.Distance(chosen.transform.position, pos));
-            }
-        }
-        else
-        {
-            //for when no valid spawn point
-            chosen = GetRandomSpawnPoint();
-            Debug.Log("No valid spawn point. Chose the farthest one possible");
-        }
-
-        GameObject obj = Instantiate(currentItemToBeSpawned, chosen.transform.position, Quaternion.identity);
-        spawnedCollectibles.Add(obj);
-        spawnedCount += 1;
-
-        if (currentItemToBeSpawned == chalk) 
-            currentItemToBeSpawned = homework;
-        else currentItemToBeSpawned = chalk;
-
-        spawnedPositions.Add(chosen.transform.position);
+        return valid;
     }
 
-    SpawnPoint GetRandomSpawnPoint()
+    List<SpawnPoint> GetValidEnemySpawnPoints()
     {
-        SpawnPoint randoSpawn = null;
+        List<SpawnPoint> valid = new List<SpawnPoint>(spawnPoints);
 
-        // Reset all spawn points
-        foreach (var sp in spawnPoints)
-            sp.active = true;
+        valid.RemoveAll(sp =>
+            Vector3.Distance(sp.transform.position, player.position) < minEnemyDistanceFromPlayer);
 
-        // Disable near player
-        foreach (var sp in spawnPoints)
-        {
-            if (Vector3.Distance(sp.transform.position, player.position) < minDistanceFromPlayer)
-                sp.active = false;
-        }
+        valid.RemoveAll(sp =>
+            Vector3.Distance(sp.transform.position, player.position) > maxEnemyDistanceFromPlayer);
 
-        // Disable already spawned positions
-        foreach (var pos in spawnedPositions)
-        {
-            foreach (var sp in spawnPoints)
-            {
-                if (Vector3.Distance(sp.transform.position, pos) < 1f)
-                    sp.active = false;
-            }
-        }
-
-        // Collect valid points
-        List<SpawnPoint> valid = new List<SpawnPoint>();
-        foreach (var sp in spawnPoints)
-            if (sp.active) valid.Add(sp);
-
-        randoSpawn = valid[Random.Range(0, valid.Count)]; 
-
-        return randoSpawn;
-
+        return valid;
     }
+
+    List<SpawnPoint> GetValidPlayerSpawnPoints()
+    {
+        List<SpawnPoint> valid = new List<SpawnPoint>(spawnPoints);
+
+        foreach (BaseEnemy enemy in EnemyManager.instance.GetAllEnemies())
+        {
+            valid.RemoveAll(sp =>
+                Vector3.Distance(sp.transform.position, enemy.transform.position) < 150f);
+        }
+
+        return valid;
+    }
+
     SpawnPoint GetFarthestSpawnPoint()
     {
         SpawnPoint farthest = null;
@@ -162,129 +92,75 @@ public class SpawnManager : MonoBehaviour
         return farthest;
     }
 
+    public void SpawnItem()
+    {
+        List<SpawnPoint> valid = GetValidItemSpawnPoints();
+
+        SpawnPoint chosen = valid.Count != 0
+            ? valid[Random.Range(0, valid.Count)]
+            : GetFarthestSpawnPoint();
+
+        GameObject obj = ObjectPooler.instance.Get(currentItemTag, chosen.transform.position, Quaternion.identity);
+        spawnedCollectibles.Add(obj);
+        spawnedCount += 1;
+
+        currentItemTag = currentItemTag == "Homework" ? "Chalk" : "Homework";
+
+        spawnedPositions.Add(chosen.transform.position);
+    }
+
     public void DeleteAllCollectibles()
     {
         foreach (GameObject item in spawnedCollectibles)
         {
             if (item != null)
-                Destroy(item);
+            {
+                string tag = item.CompareTag("Homework") ? "Homework" : "Chalk";
+                ObjectPooler.instance.ReturnToPool(tag, item);
+            }
         }
 
         spawnedCollectibles.Clear();
-
-        //to clear spawned positions
         spawnedPositions.Clear();
     }
 
     public void SpawnAllEnemies()
     {
-        SpawnEnemy(baldi);
-        SpawnEnemy(uiia);
-        SpawnEnemy(oggy);
+        EnemyManager.instance.SpawnDefaultEnemies();
+
+        foreach (BaseEnemy enemy in EnemyManager.instance.GetAllEnemies())
+            SpawnEnemy(enemy);
     }
 
-    public void SpawnEnemy(UnityEngine.AI.NavMeshAgent enemy)
+    public void SpawnEnemy(BaseEnemy enemy)
     {
-        
-        // Reset all spawn points
-        foreach (var sp in spawnPoints)
-            sp.active = true;
+        List<SpawnPoint> valid = GetValidEnemySpawnPoints();
 
-        // Disable near player
-        foreach (var sp in spawnPoints)
-        {
-            if (Vector3.Distance(sp.transform.position, player.position) < minEnemyDistanceFromPlayer)
-                sp.active = false;
-        }
+        SpawnPoint chosen = valid.Count != 0
+            ? valid[Random.Range(0, valid.Count)]
+            : GetFarthestSpawnPoint();
 
-        // Disable far from player
-        foreach (var sp in spawnPoints)
-        {
-            if (Vector3.Distance(sp.transform.position, player.position) > maxEnemyDistanceFromPlayer)
-                sp.active = false;
-        }
-
-        // Collect valid points
-        List<SpawnPoint> valid = new List<SpawnPoint>();
-        foreach (var sp in spawnPoints)
-            if (sp.active) valid.Add(sp);
-
-        // Pick random and spawn
-        SpawnPoint chosen;
-
-        if (valid.Count != 0) 
-        {
-            chosen = valid[Random.Range(0, valid.Count)]; 
-        }
-        else
-        {
-            //for when no valid spawn point
-            chosen = GetFarthestSpawnPoint();
-            Debug.Log("No valid spawn point. Chose the farthest one possible");
-        }
-
-        enemy.Warp(chosen.transform.position);
+        enemy.WarpTo(chosen.transform.position);
     }
 
     public void TeleportPlayerAway()
     {
-        // Reset all spawn points
-        foreach (var sp in spawnPoints)
-            sp.active = true;
+        List<SpawnPoint> valid = GetValidPlayerSpawnPoints();
 
-        // Disable near baldi
-        foreach (var sp in spawnPoints)
-        {
-            if (Vector3.Distance(sp.transform.position, baldiTrans.position) < 150f)
-                sp.active = false;
-        }
-
-        // Disable near oggy
-        foreach (var sp in spawnPoints)
-        {
-            if (Vector3.Distance(sp.transform.position, oggyTrans.position) < 150f)
-                sp.active = false;
-        }
-
-        // Disable near uiia
-        foreach (var sp in spawnPoints)
-        {
-            if (Vector3.Distance(sp.transform.position, uiiaTrans.position) < 150f)
-                sp.active = false;
-        }
-
-        // Collect valid points
-        List<SpawnPoint> valid = new List<SpawnPoint>();
-        foreach (var sp in spawnPoints)
-            if (sp.active) valid.Add(sp);
-
-        // Pick random and spawn
-        SpawnPoint chosen;
-
-        if (valid.Count != 0) 
-        {
-            chosen = valid[Random.Range(0, valid.Count)]; 
-        }
-        else
-        {
-            //for when no valid spawn point
-            chosen = GetFarthestSpawnPoint();
-            Debug.Log("No valid spawn point. Chose the farthest one possible");
-        }
+        SpawnPoint chosen = valid.Count != 0
+            ? valid[Random.Range(0, valid.Count)]
+            : GetFarthestSpawnPoint();
 
         playerGameObject.GetComponent<CharacterController>().enabled = false;
         playerGameObject.transform.position = chosen.transform.position;
         playerGameObject.transform.position += new Vector3(0f, 2f, 0f);
         playerGameObject.GetComponent<CharacterController>().enabled = true;
-
     }
 
-    // This is to assign spawn points automatically from inspector
-    #if UNITY_EDITOR
-    [ContextMenu("Auto Assign Spawn Points")]
-    void AutoAssign()
+    // In SpawnManager.cs - add this method
+    public void RespawnEnemiesInPlace()
     {
-        spawnPoints = FindObjectsOfType<SpawnPoint>();
+        foreach (BaseEnemy enemy in EnemyManager.instance.GetAllEnemies())
+            SpawnEnemy(enemy);
     }
-    #endif
 }

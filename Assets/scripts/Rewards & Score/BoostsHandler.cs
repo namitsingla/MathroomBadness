@@ -12,11 +12,6 @@ public class BoostsHandler : MonoBehaviour
     public collectedisplay collectedisplay;
     public Camera mainCamera;
     public GameObject Minimap;
-    public BaldiEnemy baldiEnemy;
-    public UnityEngine.AI.NavMeshAgent baldiNavMesh;
-    public UnityEngine.AI.NavMeshAgent uiiaNavMesh;
-    public EnemyController enemyController;
-    public UnityEngine.AI.NavMeshAgent oggyNavMesh;
     public PowerSystem powerSystem;
     public bool isRadarOn = false;
     public GameManager gameManager;
@@ -29,7 +24,6 @@ public class BoostsHandler : MonoBehaviour
     int uiiaWallsLayer;
     public bool isMitosisOn = false;
     public int mitosisMultiplier = 2;
-    public ExitDoor exitDoor;
     public bool isPassiveMagnetOn = false;
     public ParticleSystem sandBurst;
     public AudioSource sandHitSoundSource;
@@ -82,11 +76,8 @@ public class BoostsHandler : MonoBehaviour
 
     public void SlowDownEnemies()
     {
-        baldiEnemy.baldiBaseSpeed *= 0.70f;
-        baldiNavMesh.speed = baldiEnemy.baldiBaseSpeed;
-        uiiaNavMesh.speed *= 0.70f;
-        enemyController.oggyBAseSpeed *= 0.70f;
-        oggyNavMesh.speed = enemyController.oggyBAseSpeed;
+        foreach (BaseEnemy enemy in EnemyManager.instance.GetAllEnemies())
+            enemy.SetSpeedMultiplier(0.70f);
     }
 
     public void InvincibilityShield()
@@ -106,15 +97,18 @@ public class BoostsHandler : MonoBehaviour
 
     public void RagebaitBaldi()
     {
-        if (baldiEnemy.isEnraged)
-        {
-            baldiEnemy.baldiBaseSpeed *= 1.2f;
-        }
+        // foreach (BaldiEnemy baldi in EnemyManager.instance.GetAllEnemiesOfType<BaldiEnemy>())
+        // {
+        //     if (baldi.isEnraged)
+        //         baldi.baldiBaseSpeed *= 1.2f;
 
-        baldiEnemy.isEnraged = true;
-        baldiEnemy.lookRadius = 1000f;
-        baldiEnemy.baldiBaseSpeed *= 1.1f;
-        collectedisplay.mult += 1f;
+        //     baldi.isEnraged = true;
+        //     baldi.lookRadius = 1000f;
+        //     baldi.baldiBaseSpeed *= 1.1f;
+        //     baldi.agent.speed = baldi.baldiBaseSpeed;
+        // }
+
+        // collectedisplay.mult += 1f;
     }
 
     public void Radar()
@@ -220,7 +214,7 @@ public class BoostsHandler : MonoBehaviour
 
     public void HighStakes()
     {
-        exitDoor.requiredItems *= 2;;
+        ExitDoor.requiredItems *= 2;;
         collectedisplay.mult += 2f;
     }
 

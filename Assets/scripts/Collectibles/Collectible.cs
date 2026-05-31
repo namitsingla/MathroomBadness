@@ -6,14 +6,12 @@ using  UnityEngine.Audio;
 public class Collectible : MonoBehaviour
 {
    public float rotationSpeed = 50f; // degrees per second
+   public string poolTag;
    collectedisplay collecteddisplay;  
    BaldiWarningHide baldiWarning;
    MusicManager musicManager;
    DialogueSoundManager dialogueSoundManager;
    SpawnManager spawnManager;
-   GameObject baldi;
-   BaldiEnemy baldiEnemy;
-   ExitDoor exitDoor;
    BoostsHandler boostsHandler;
    PowerSystem powerSystem;
    private bool hasBeenCollected = false;
@@ -23,10 +21,7 @@ public class Collectible : MonoBehaviour
         baldiWarning = ReferencesManager.instance.baldiWarning;
         musicManager = ReferencesManager.instance.musicManager;
         dialogueSoundManager = ReferencesManager.instance.dialogueSoundManager;
-        baldi = ReferencesManager.instance.baldi;
         spawnManager = ReferencesManager.instance.spawnManager;
-        baldiEnemy = ReferencesManager.instance.baldiEnemy;
-        exitDoor = ReferencesManager.instance.exitDoor;
         boostsHandler = ReferencesManager.instance.boostsHandler;
         powerSystem = ReferencesManager.instance.powerSystem;
 
@@ -40,7 +35,7 @@ public class Collectible : MonoBehaviour
 
     void OnTriggerEnter(Collider other )
     {
-        Debug.Log("Item was touched by: " + other.gameObject.name + " | Tag: " + other.tag);
+        //Debug.Log("Item was touched by: " + other.gameObject.name + " | Tag: " + other.tag);
 
         if (!other.CompareTag("Player")) return;
 
@@ -86,22 +81,28 @@ public class Collectible : MonoBehaviour
             collecteddisplay.UpdateDisplay();
 
             //activate exit door if collected = 3
-            if (collecteddisplay.collected >= exitDoor.requiredItems) exitDoor.ActivateExitDoor();
+            if (collecteddisplay.collected >= ExitDoor.requiredItems)
+                ExitDoorManager.instance.ActivateAllExitDoors();
 
             dialogueSoundManager.PlayCollectSound();
             musicManager.StartPuaseBGMForCollectionText();
-            Destroy(gameObject);
+            ObjectPooler.instance.ReturnToPool(poolTag, gameObject);
 
             // display collected warning
             baldiWarning.ShowWarning();
             baldiWarning.WarningNumber(gameObject);
             
 
-            // sincrease baldi's speed
+            // increase baldi's speed
             if (!powerSystem.isStunnerActive)
-            baldi.GetComponent<NavMeshAgent>().speed = baldiEnemy.baldiBaseSpeed + baldiEnemy.speedIncrease*collecteddisplay.collected;
+            EnemyManager.instance.GetEnemy<BaldiEnemy>().UpdateSpeed(collecteddisplay.collected);
 
             musicManager.UpdateBackgroundMusic();  
+    }
+
+    void OnEnable()
+    {
+        hasBeenCollected = false;
     }
 
 }

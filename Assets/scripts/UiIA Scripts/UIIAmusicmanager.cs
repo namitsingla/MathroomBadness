@@ -4,7 +4,6 @@ public class UIIAmusicmanager : MonoBehaviour
 {
     public AudioSource audioSource;      // drag your AudioSource here
     public AudioClip[] songs;            // assign your songs in the Inspector
-    public PauseMenu pauseMenu;
 
     public int lastSongIndex = -1;      // to avoid repeats
 

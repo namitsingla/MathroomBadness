@@ -1,93 +1,60 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class EnemyController : MonoBehaviour
+public class EnemyController : BaseEnemy
 {
-    public float lookRadius = 60f;
-
-    public Transform target;
-    NavMeshAgent agent;
-    public GameManager targetScript;
-    public bool isEnraged = false;
-    public CatchType catchType = CatchType.oggy;
-    public float oggyBAseSpeed = 4f;
-    public bool isStunned = false;
-
-    // for patrolling
-    public Transform[] patrolPoints;
-    private int currentPatrolIndex = 0;
-    public PowerSystem powerSystem;
+    [Header("Oggy Specific")]
     public Animator animator;
     public float baseAnimationSpeed = 2f;
+    public float oggyBaseSpeed = 10f;
 
-    void Start()
+    protected override void Awake()
     {
-        agent = GetComponent<NavMeshAgent>();
+        base.Awake();
+        catchType = CatchType.oggy;
     }
 
-    void Update()
+    void OnEnable()
+    {
+        baseSpeed = oggyBaseSpeed;
+        agent.speed = baseSpeed;
+    }
+
+    public override void Enrage()
+    {
+        if (isEnraged) return;
+        isEnraged = true;
+        oggyBaseSpeed *= 1.3f;
+        baseSpeed = oggyBaseSpeed;
+    }
+
+    public override void UnEnrage()
+    {
+        isEnraged = false;
+        oggyBaseSpeed /= 1.3f;
+        baseSpeed = oggyBaseSpeed;
+    }
+
+    public override void ResetEnemy()
+    {
+        base.ResetEnemy();
+        if (isEnraged) UnEnrage();
+        baseSpeed = oggyBaseSpeed;
+        agent.speed = baseSpeed;
+    }
+
+    protected override void HandleMovement()
     {
         float distance = Vector3.Distance(target.position, transform.position);
 
-        // speed oggy up if he is afar
-        if (isStunned) agent.speed = 0f;
-         else {agent.speed = oggyBAseSpeed *  (10 + distance)/50; }
+        // distance scaling: closer = slower, farther = faster, capped sensibly
+        float distanceMultiplier = (10f + distance) / 50f;
+        agent.speed = isStunned ? 0f : baseSpeed * distanceMultiplier;
+        animator.SetFloat("MotionSpeed", agent.speed / baseAnimationSpeed);
 
-        animator.SetFloat("MotionSpeed", agent.speed/baseAnimationSpeed);
-
-        // checking if within range
-        if (distance <= lookRadius || isEnraged)
-        {
-             Vector3 direction = (target.position - transform.position).normalized;
-
-           if (Physics.Raycast(transform.position, direction, out RaycastHit hit, lookRadius) || isEnraged)
-            {
-                if (hit.collider.CompareTag("Player") || isEnraged)
-                {
-                    agent.SetDestination(target.position); //sets target on player
-                    //Debug.Log("Player detected!");
-                }
-            }
-
-            /*if (distance <= agent.stoppingDistance)
-                {
-                    //so enemy faces the player when attacking
-                    FaceTarget();
-                }*/
-        }
-
-        //to set agent to patrolling
-        if (!isEnraged && !agent.hasPath || agent.remainingDistance < 1f)
-        {
-            GoToRandomPoint();
-        }
-    }
-
-    void FaceTarget ()
-    {
-        Vector3 direction = (target.position - transform.position).normalized;
-        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
-        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
-    }
-
-    void GoToRandomPoint()
-    {
-        currentPatrolIndex = Random.Range(0, patrolPoints.Length);
-        agent.SetDestination(patrolPoints[currentPatrolIndex].position);
-        //Debug.Log("Set a new patrol point for Baldi");
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            if (powerSystem.isPowerDotOn)
-            {
-                powerSystem.StartCoroutine(powerSystem.PowerDotTeleport(agent));
-                return;
-            }
-
-            targetScript.KhelKhatam(transform, catchType);
-        }
+        if (CanSeePlayer() || isEnraged)
+            agent.SetDestination(target.position);
+        else if (!agent.hasPath || agent.remainingDistance < 1f)
+            GoToRandomPatrolPoint();
     }
 }

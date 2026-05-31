@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine;
 
 public class ExitDoorSpawner : MonoBehaviour
@@ -35,11 +32,11 @@ public class ExitDoorSpawner : MonoBehaviour
     // }
 
     // This is to assign spawn points automatically from inspector
-    #if UNITY_EDITOR
-    [ContextMenu("Auto Assign Exit Door Spawn Points")]
-    void AutoAssign()
-    {
-        spawnPoints = FindObjectsOfType<ExitDoorSpawnPoint>();
-    }
-    #endif
+    // #if UNITY_EDITOR
+    // [ContextMenu("Auto Assign Exit Door Spawn Points")]
+    // void AutoAssign()
+    // {
+    //     spawnPoints = FindObjectsOfType<ExitDoorSpawnPoint>();
+    // }
+    // #endif
 }
